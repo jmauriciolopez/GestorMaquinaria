@@ -60,7 +60,9 @@ export class AlquileresService {
       throw new BadRequestException('El alquiler debe estar confirmado para hacer check-out');
     }
     const activo = await this.activosService.findOne(dto.activoId, tenantId);
-    if (activo.estado === EstadoActivo.ALQUILADO) throw new BadRequestException('El activo ya fue entregado');
+    if (![EstadoActivo.DISPONIBLE, EstadoActivo.RESERVADO].includes(activo.estado as EstadoActivo)) {
+      throw new BadRequestException(`El activo no está disponible para entrega (Estado actual: ${activo.estado})`);
+    }
 
     const entrega = await this.entregaRepo.save(
       this.entregaRepo.create({ ...dto, alquilerId: id, usuarioId }),
