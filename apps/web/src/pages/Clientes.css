@@ -1,0 +1,62 @@
+.clientes-wrapper {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.client-main-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.client-main-cell strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.client-main-cell span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.contact-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.contact-item svg {
+  color: var(--text-muted);
+}
+
+.address-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.address-cell svg {
+  color: var(--text-muted);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .clientes-wrapper {
+    padding: 1rem;
+  }
+}

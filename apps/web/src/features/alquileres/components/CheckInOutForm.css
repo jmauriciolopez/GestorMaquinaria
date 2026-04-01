@@ -1,0 +1,140 @@
+.check-io-form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 600px;
+}
+
+.item-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+}
+
+.item-summary .info {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-summary .info strong { font-size: 1.1rem; color: var(--text-primary); }
+.item-summary .info span { font-size: 0.85rem; color: var(--text-muted); }
+
+.icon-out { color: var(--primary); }
+.icon-in { color: var(--info); }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.form-group input, .form-group textarea, .form-group select {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0.75rem;
+  color: var(--text-primary);
+  width: 100%;
+}
+
+.form-group input:focus, .form-group textarea:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.error-text {
+  color: var(--error);
+  font-size: 0.8rem;
+}
+
+/* Danos Section */
+.danos-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.danos-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.danos-section h3 {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.btn-add-dano {
+  background: none;
+  border: 1px dashed var(--primary);
+  color: var(--primary);
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.dano-item {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.dano-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.dano-row .main { flex: 1; }
+.dano-row select { width: 120px; }
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.btn-remove:hover { color: var(--error); }
+
+.no-danos {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--success);
+  font-size: 0.9rem;
+  padding: 0.75rem;
+  background: rgba(34, 197, 94, 0.05);
+  border-radius: 6px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+}

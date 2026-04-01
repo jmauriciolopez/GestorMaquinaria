@@ -7,6 +7,7 @@ import Activos from './pages/Activos';
 import ActivoDetail from './pages/ActivoDetail';
 import Clientes from './pages/Clientes';
 import Alquileres from './pages/Alquileres';
+import AlquilerDetail from './pages/AlquilerDetail';
 import Devoluciones from './pages/Devoluciones';
 import Mantenimiento from './pages/Mantenimiento';
 import Penalidades from './pages/Penalidades';
@@ -26,6 +27,7 @@ const App = () => {
           <Route path="/activos/:id" element={<ActivoDetail />} />
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/alquileres" element={<Alquileres />} />
+          <Route path="/alquileres/:id" element={<AlquilerDetail />} />
           <Route path="/devoluciones" element={<Devoluciones />} />
           <Route path="/mantenimiento" element={<Mantenimiento />} />
           <Route path="/penalidades" element={<Penalidades />} />

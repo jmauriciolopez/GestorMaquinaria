@@ -1,0 +1,66 @@
+.alquileres-wrapper {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.ref-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.ref-cell strong {
+  color: var(--primary);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -0.5px;
+}
+
+.ref-cell span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.cliente-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-primary);
+}
+
+.cliente-cell svg {
+  color: var(--text-muted);
+}
+
+.vigencia-cell .range {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.vigencia-cell svg {
+  color: var(--text-muted);
+}
+
+.total-cell strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1024px) {
+  .alquileres-wrapper {
+    padding: 1rem;
+  }
+}
