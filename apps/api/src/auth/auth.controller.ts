@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Headers } from '@nestjs/common';
+import { Controller, Post, Body, Headers, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { Public } from '../common/decorators/public.decorator';
@@ -13,6 +13,7 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Headers('x-tenant-id') tenantId: string,
   ) {
-    return this.authService.login(dto, tenantId ?? 'default');
+    if (!tenantId) throw new BadRequestException('Header x-tenant-id es requerido');
+    return this.authService.login(dto, tenantId);
   }
 }
