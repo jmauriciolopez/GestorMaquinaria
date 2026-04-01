@@ -8,7 +8,12 @@
     "start": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "test": "jest",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "migration:run": "typeorm-ts-node-commonjs -d src/database/data-source.ts migration:run",
+    "migration:revert": "typeorm-ts-node-commonjs -d src/database/data-source.ts migration:revert",
+    "migration:generate": "typeorm-ts-node-commonjs -d src/database/data-source.ts migration:generate",
+    "migration:show": "typeorm-ts-node-commonjs -d src/database/data-source.ts migration:show",
+    "migration:create": "typeorm-ts-node-commonjs migration:create"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -23,6 +28,7 @@
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "dotenv": "^16.0.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
     "pdfkit": "^0.18.0",
@@ -39,6 +45,7 @@
     "@types/node": "^20.0.0",
     "@types/passport-jwt": "^3.0.0",
     "@types/uuid": "^9.0.0",
+    "ts-node": "^10.9.0",
     "typescript": "^5.0.0"
   }
 }

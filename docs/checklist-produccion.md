@@ -4,7 +4,7 @@
 
 ### Seguridad
 - [ ] Cambiar `JWT_SECRET` por uno generado con `openssl rand -base64 64`
-- [ ] Remover `synchronize: true` de TypeORM en producción (usar migraciones)
+- [x] Migraciones TypeORM — `synchronize: false` en producción, `migrationsRun: true`
 - [ ] Configurar rate limiting (`@nestjs/throttler`)
 - [ ] Agregar helmet para headers HTTP seguros
 - [ ] Validar que `CORS_ORIGIN` apunte solo al dominio del frontend
@@ -12,8 +12,8 @@
 - [ ] Hashear logs — no loguear passwords ni tokens
 
 ### Base de datos
-- [ ] Crear migraciones TypeORM en lugar de usar `synchronize`
-- [ ] Configurar connection pool adecuado (pg pool size)
+- [x] Migraciones TypeORM creadas (3 migraciones: enums, tablas base, tablas operativas)
+- [x] `data-source.ts` listo para CLI (`npm run migration:run`)
 - [ ] Hacer backup de la DB antes de cada deploy
 - [ ] Agregar índices adicionales según queries más frecuentes
 - [ ] Revisar constraints de unicidad por tenant
@@ -26,7 +26,7 @@
 
 ### Infraestructura
 - [ ] Variables de entorno en servicio de secretos (AWS Secrets Manager, etc.)
-- [ ] Configurar health check endpoint (`/api/v1/health`)
+- [x] Health check endpoint — `GET /api/v1/health` y `GET /api/v1/health/ping`
 - [ ] Agregar Sentry o similar para error tracking
 - [ ] Configurar logs centralizados (CloudWatch, Datadog, etc.)
 - [ ] CI/CD pipeline con tests antes de deploy

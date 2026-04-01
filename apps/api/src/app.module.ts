@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { DatabaseModule } from './database/database.module';
+import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { RolesModule } from './roles/roles.module';
@@ -28,9 +29,14 @@ import jwtConfig from './config/jwt.config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, load: [appConfig, databaseConfig, jwtConfig], envFilePath: '.env' }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [appConfig, databaseConfig, jwtConfig],
+      envFilePath: '.env',
+    }),
     ScheduleModule.forRoot(),
     DatabaseModule,
+    HealthModule,
     AuthModule,
     UsuariosModule,
     RolesModule,
