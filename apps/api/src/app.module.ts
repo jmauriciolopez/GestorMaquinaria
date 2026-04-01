@@ -14,6 +14,7 @@ import { MovimientosActivoModule } from './movimientos-activo/movimientos-activo
 import { ClientesModule } from './clientes/clientes.module';
 import { TarifasModule } from './tarifas/tarifas.module';
 import { ReservasModule } from './reservas/reservas.module';
+import { AlquileresModule } from './alquileres/alquileres.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
@@ -21,11 +22,7 @@ import jwtConfig from './config/jwt.config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig],
-      envFilePath: '.env',
-    }),
+    ConfigModule.forRoot({ isGlobal: true, load: [appConfig, databaseConfig, jwtConfig], envFilePath: '.env' }),
     ScheduleModule.forRoot(),
     DatabaseModule,
     AuthModule,
@@ -39,6 +36,7 @@ import jwtConfig from './config/jwt.config';
     ClientesModule,
     TarifasModule,
     ReservasModule,
+    AlquileresModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }],
 })
