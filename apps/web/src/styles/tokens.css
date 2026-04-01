@@ -1,0 +1,42 @@
+:root {
+  /* Colors - Base Slate/Blue (Industrial Premium) */
+  --color-bg-deep: #020617;
+  --color-bg-main: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-hover: #334155;
+  
+  /* Brand - Industry Amber / Gold */
+  --color-primary: #fbbf24; /* Amber 400 */
+  --color-primary-hover: #f59e0b;
+  --color-primary-text: #1e293b;
+  
+  /* Text */
+  --color-text-main: #f8fafc;
+  --color-text-muted: #94a3b8;
+  --color-text-accent: #fbbf24;
+  
+  /* Semantic */
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+
+  /* Borders & Shadows */
+  --border-radius-sm: 6px;
+  --border-radius-md: 10px;
+  --border-radius-lg: 16px;
+  --border-radius-full: 9999px;
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+  
+  /* Layout */
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 80px;
+  --topbar-height: 72px;
+  
+  /* Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
