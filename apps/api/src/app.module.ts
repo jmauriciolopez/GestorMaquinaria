@@ -11,6 +11,9 @@ import { ActivosModule } from './activos/activos.module';
 import { CategoriasActivoModule } from './categorias-activo/categorias-activo.module';
 import { ModelosActivoModule } from './modelos-activo/modelos-activo.module';
 import { MovimientosActivoModule } from './movimientos-activo/movimientos-activo.module';
+import { ClientesModule } from './clientes/clientes.module';
+import { TarifasModule } from './tarifas/tarifas.module';
+import { ReservasModule } from './reservas/reservas.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
@@ -33,6 +36,9 @@ import jwtConfig from './config/jwt.config';
     CategoriasActivoModule,
     ModelosActivoModule,
     MovimientosActivoModule,
+    ClientesModule,
+    TarifasModule,
+    ReservasModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }],
 })
