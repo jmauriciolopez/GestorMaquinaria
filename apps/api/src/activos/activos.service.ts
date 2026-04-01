@@ -75,4 +75,21 @@ export class ActivosService {
     activo.estado = estado as Activo['estado'];
     return this.repo.save(activo);
   }
+
+  async getStats(tenantId: string) {
+    const stats = await this.repo
+      .createQueryBuilder('a')
+      .select('a.estado', 'estado')
+      .addSelect('COUNT(*)', 'count')
+      .where('a.tenant_id = :tenantId', { tenantId })
+      .andWhere('a.deleted_at IS NULL')
+      .groupBy('a.estado')
+      .getRawMany();
+
+    // Transform raw results into a cleaner object
+    return stats.reduce((acc, curr) => {
+      acc[curr.estado] = parseInt(curr.count, 10);
+      return acc;
+    }, {} as Record<string, number>);
+  }
 }

@@ -2,8 +2,9 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
 import ProtectedRoute from './auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
-import Dashboard from './pages/Dashboard';
+import DashboardOperativo from './pages/DashboardOperativo';
 import Activos from './pages/Activos';
+import ActivoDetail from './pages/ActivoDetail';
 import Clientes from './pages/Clientes';
 import Alquileres from './pages/Alquileres';
 import Devoluciones from './pages/Devoluciones';
@@ -20,8 +21,9 @@ const App = () => {
         
         <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<DashboardOperativo />} />
           <Route path="/activos" element={<Activos />} />
+          <Route path="/activos/:id" element={<ActivoDetail />} />
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/alquileres" element={<Alquileres />} />
           <Route path="/devoluciones" element={<Devoluciones />} />

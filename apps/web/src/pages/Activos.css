@@ -1,0 +1,103 @@
+.activos-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filters-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  max-width: 400px;
+  color: var(--color-text-muted);
+}
+
+.search-box input {
+  background: transparent;
+  width: 100%;
+  color: #fff;
+  font-size: 0.875rem;
+}
+
+.select-filters {
+  display: flex;
+  gap: 1rem;
+}
+
+.select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--color-text-muted);
+}
+
+.select-wrapper select {
+  background: transparent;
+  color: #fff;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.codigo-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.codigo-cell strong {
+  color: var(--color-primary);
+  font-family: monospace;
+  font-size: 0.9375rem;
+}
+
+.codigo-cell span {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.model-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.model-cell small {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.location-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-muted);
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.placeholder-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  height: 100%;
+  padding: 2rem;
+  color: var(--color-text-muted);
+}

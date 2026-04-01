@@ -23,6 +23,11 @@ export class ActivosController {
     return this.service.findAll(u.tenantId, filtro, pagination);
   }
 
+  @Get('stats')
+  getStats(@GetUsuario() u: UsuarioActivo) {
+    return this.service.getStats(u.tenantId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @GetUsuario() u: UsuarioActivo) {
     return this.service.findOne(id, u.tenantId);
