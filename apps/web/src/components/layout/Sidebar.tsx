@@ -8,6 +8,7 @@ import {
   RotateCcw, 
   Wrench, 
   AlertTriangle, 
+  DollarSign,
   Settings,
   X
 } from 'lucide-react';
@@ -20,6 +21,7 @@ const menuItems = [
   { path: '/alquileres', icon: Key, label: 'Alquileres' },
   { path: '/devoluciones', icon: RotateCcw, label: 'Devoluciones' },
   { path: '/mantenimiento', icon: Wrench, label: 'Mantenimiento' },
+  { path: '/finanzas', icon: DollarSign, label: 'Finanzas' },
   { path: '/penalidades', icon: AlertTriangle, label: 'Penalidades' },
   { path: '/configuracion', icon: Settings, label: 'Configuración' },
 ];

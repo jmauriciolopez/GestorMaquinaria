@@ -16,6 +16,8 @@ import { TarifasModule } from './tarifas/tarifas.module';
 import { ReservasModule } from './reservas/reservas.module';
 import { AlquileresModule } from './alquileres/alquileres.module';
 import { DevolucionesModule } from './devoluciones/devoluciones.module';
+import { PagosModule } from './pagos/pagos.module';
+import { ReportsModule } from './reports/reports.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';

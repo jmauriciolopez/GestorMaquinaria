@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   DollarSign, 
   CreditCard, 
   History, 
   AlertTriangle,
-  CheckCircle2,
-  Receipt
+  Receipt,
+  Plus
 } from 'lucide-react';
 import { Alquiler } from '../types';
+import PaymentList from '../../finanzas/components/PaymentList';
+import PaymentForm from '../../finanzas/components/PaymentForm';
+import Drawer from '../../../components/ui/Drawer';
 import './PaymentSummary.css';
 
 interface Props {
@@ -15,6 +18,8 @@ interface Props {
 }
 
 const PaymentSummary: React.FC<Props> = ({ alquiler }) => {
+  const [isPaymentDrawerOpen, setPaymentDrawerOpen] = useState(false);
+  
   const totalConPenalidades = Number(alquiler.subtotal) + Number(alquiler.totalPenalidades);
   const saldoPendiente = totalConPenalidades - Number(alquiler.totalPagado);
   const isPaid = saldoPendiente <= 0;
@@ -54,45 +59,37 @@ const PaymentSummary: React.FC<Props> = ({ alquiler }) => {
             <Receipt size={20} />
             <h4>Saldo Pendiente</h4>
           </div>
-          <div className="amount">USD {saldoPendiente.toLocaleString()}</div>
+          <div className="amount">USD {Math.max(0, saldoPendiente).toLocaleString()}</div>
           <div className="label-sub">{isPaid ? 'Contrato Liquidado' : 'Pendiente de cobro'}</div>
         </div>
       </div>
 
-      <section className="payment-history card-premium">
-        <div className="section-header">
-          <div className="title">
-            <History size={20} />
-            <h3>Historial de Pagos</h3>
-          </div>
-        </div>
-
-        <div className="history-list">
-          <div className="empty-history">
-            <InfoIcon size={32} />
-            <p>No hay pagos registrados para este contrato. El módulo de finanzas se implementará próximamente.</p>
-          </div>
-        </div>
-      </section>
+      <div className="payment-history-section">
+        <PaymentList alquilerId={alquiler.id} />
+      </div>
 
       {!isPaid && (
         <div className="payment-actions">
-          <button className="btn-primary" onClick={() => alert('Próximamente: Integración con Caja/Finanzas')}>
-            <DollarSign size={18} />
-            Registrar Pago Manual
+          <button className="btn-primary" onClick={() => setPaymentDrawerOpen(true)}>
+            <Plus size={18} />
+            Registrar Nuevo Cobro
           </button>
         </div>
       )}
+
+      <Drawer 
+        isOpen={isPaymentDrawerOpen} 
+        onClose={() => setPaymentDrawerOpen(false)} 
+        title="Registrar Cobro de Alquiler"
+      >
+        <PaymentForm 
+          alquilerId={alquiler.id} 
+          onSuccess={() => setPaymentDrawerOpen(false)}
+          onCancel={() => setPaymentDrawerOpen(false)}
+        />
+      </Drawer>
     </div>
   );
 };
-
-const InfoIcon = ({ size }: { size: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="16" x2="12" y2="12" />
-    <line x1="12" y1="8" x2="12.01" y2="8" />
-  </svg>
-);
 
 export default PaymentSummary;

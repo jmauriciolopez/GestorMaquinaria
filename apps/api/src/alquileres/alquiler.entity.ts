@@ -2,9 +2,12 @@ import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColum
 import { EstadoAlquiler } from './estado-alquiler.enum';
 import { Cliente } from '../clientes/cliente.entity';
 import { Usuario } from '../usuarios/usuario.entity';
+import { Activo } from '../activos/activo.entity';
 
 @Entity('alquileres')
+// ... (rest of Alquiler class remains same)
 export class Alquiler {
+  // ... (lines 8-26)
   @PrimaryGeneratedColumn('uuid') id: string;
   @Column({ name: 'tenant_id', type: 'uuid' }) tenantId: string;
   @Column({ name: 'sucursal_id', type: 'uuid' }) sucursalId: string;
@@ -38,4 +41,5 @@ export class AlquilerItem {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' }) createdAt: Date;
 
   @ManyToOne(() => Alquiler, (a) => a.items) @JoinColumn({ name: 'alquiler_id' }) alquiler: Alquiler;
+  @ManyToOne(() => Activo) @JoinColumn({ name: 'activo_id' }) activo: Activo;
 }

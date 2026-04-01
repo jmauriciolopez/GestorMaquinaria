@@ -12,8 +12,10 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  MoreVertical
+  MoreVertical,
+  FileText
 } from 'lucide-react';
+import { useReports } from '../hooks/useReports';
 import { 
   useAlquiler, 
   useConfirmarAlquiler,
@@ -50,6 +52,7 @@ const AlquilerDetail = () => {
 
   const { data: alquiler, isLoading } = useAlquiler(id);
   const { data: penalidades } = usePenalidades(id);
+  const { downloadContract } = useReports();
   const confirmarMutation = useConfirmarAlquiler();
 
   if (isLoading) return <div className="page-loader">Cargando contrato...</div>;
@@ -81,6 +84,14 @@ const AlquilerDetail = () => {
               Cancelar
             </button>
           )}
+          <button 
+            className="btn-secondary" 
+            onClick={() => downloadContract(alquiler.id)}
+            title="Descargar Contrato PDF"
+          >
+            <FileText size={18} />
+            Contrato
+          </button>
           <button className="btn-icon-more">
             <MoreVertical size={20} />
           </button>

@@ -8,6 +8,7 @@ import ActivoDetail from './pages/ActivoDetail';
 import Clientes from './pages/Clientes';
 import Alquileres from './pages/Alquileres';
 import AlquilerDetail from './pages/AlquilerDetail';
+import Finanzas from './pages/Finanzas';
 import Devoluciones from './pages/Devoluciones';
 import Mantenimiento from './pages/Mantenimiento';
 import Penalidades from './pages/Penalidades';
