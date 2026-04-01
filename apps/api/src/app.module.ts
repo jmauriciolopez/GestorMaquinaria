@@ -16,6 +16,9 @@ import { TarifasModule } from './tarifas/tarifas.module';
 import { ReservasModule } from './reservas/reservas.module';
 import { AlquileresModule } from './alquileres/alquileres.module';
 import { DevolucionesModule } from './devoluciones/devoluciones.module';
+import { PenalidadesModule } from './penalidades/penalidades.module';
+import { MantenimientosModule } from './mantenimientos/mantenimientos.module';
+import { RecordatoriosModule } from './recordatorios/recordatorios.module';
 import { PagosModule } from './pagos/pagos.module';
 import { ReportsModule } from './reports/reports.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
@@ -41,6 +44,11 @@ import jwtConfig from './config/jwt.config';
     ReservasModule,
     AlquileresModule,
     DevolucionesModule,
+    PenalidadesModule,
+    MantenimientosModule,
+    RecordatoriosModule,
+    PagosModule,
+    ReportsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }],
 })
