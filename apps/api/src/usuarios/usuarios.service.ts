@@ -56,6 +56,18 @@ export class UsuariosService {
       .getOne();
   }
 
+  async findByIdConPassword(id: string, tenantId: string): Promise<Usuario | null> {
+    return this.repo
+      .createQueryBuilder('u')
+      .addSelect('u.passwordHash')
+      .where('u.id = :id AND u.tenantId = :tenantId', { id, tenantId })
+      .getOne();
+  }
+
+  async actualizarPassword(id: string, passwordHash: string): Promise<void> {
+    await this.repo.update(id, { passwordHash });
+  }
+
   async update(
     id: string,
     dto: UpdateUsuarioDto,

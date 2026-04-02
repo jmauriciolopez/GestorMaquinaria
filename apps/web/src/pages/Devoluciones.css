@@ -1,0 +1,50 @@
+.devoluciones-wrapper { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.dev-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.dev-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: var(--border-radius-lg);
+  border-left-width: 3px;
+}
+
+.dev-summary-card div { display: flex; flex-direction: column; }
+.dev-card-value { font-size: 1.75rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+.dev-card-label { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.2rem; }
+
+.dev-card-warning { border-left-color: var(--color-warning); }
+.dev-card-warning svg, .dev-card-warning .dev-card-value { color: var(--color-warning); }
+
+.dev-card-info { border-left-color: var(--color-info); }
+.dev-card-info svg, .dev-card-info .dev-card-value { color: var(--color-info); }
+
+.dev-card-primary { border-left-color: var(--color-primary); }
+.dev-card-primary svg, .dev-card-primary .dev-card-value { color: var(--color-primary); }
+
+.dev-filter-tabs { display: flex; gap: 0.25rem; }
+
+.dev-tab {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.dev-tab:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.dev-tab.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+
+.mono { font-family: monospace; color: var(--color-primary); font-size: 0.8125rem; }

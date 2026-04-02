@@ -224,3 +224,67 @@
   font-size: 1.25rem;
   letter-spacing: -0.02em;
 }
+
+.notes-box {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.notes-box label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.notes-box p {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.section-count {
+  margin-left: auto;
+  font-size: 0.75rem;
+  background: rgba(255,255,255,0.06);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  color: var(--color-text-muted);
+}
+
+.alert-box.error {
+  background: rgba(239,68,68,0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.2);
+}
+
+.specs-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-size: 0.8125rem;
+}
+
+.btn-action-outline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.page-loader, .page-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+}

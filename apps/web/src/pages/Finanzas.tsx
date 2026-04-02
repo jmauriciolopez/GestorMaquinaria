@@ -1,99 +1,133 @@
-import React from 'react';
-import { 
-  TrendingUp, 
-  DollarSign, 
-  ArrowUpRight, 
-  ArrowDownRight,
-  Wallet,
-  Calendar,
-  Filter,
-  Download
-} from 'lucide-react';
+import React, { useState } from 'react';
+import { DollarSign, TrendingUp, Wallet, CreditCard, Filter } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/client';
 import { useFinanceStats } from '../features/finanzas/hooks/usePagosData';
-import './Alquileres.css'; // Reusing some base styles for consistent layout
+import { Pago, MetodoPago } from '../features/finanzas/types';
+import DataTable from '../components/ui/DataTable';
+import Badge, { BadgeVariant } from '../components/ui/Badge';
+import { useNavigate } from 'react-router-dom';
+import './Finanzas.css';
+
+const METODO_CFG: Record<MetodoPago, { label: string; variant: BadgeVariant }> = {
+  [MetodoPago.EFECTIVO]:      { label: 'Efectivo',      variant: 'success'   },
+  [MetodoPago.TRANSFERENCIA]: { label: 'Transferencia', variant: 'info'      },
+  [MetodoPago.TARJETA]:       { label: 'Tarjeta',       variant: 'primary'   },
+  [MetodoPago.CHEQUE]:        { label: 'Cheque',        variant: 'warning'   },
+  [MetodoPago.OTRO]:          { label: 'Otro',          variant: 'secondary' },
+};
+
+interface PagoExtended extends Pago {
+  alquiler?: { id: string; cliente?: { nombre: string } };
+}
+
+const usePagosRecientes = () => useQuery<PagoExtended[]>({
+  queryKey: ['pagos', 'recientes'],
+  queryFn: async () => {
+    // Obtenemos alquileres activos y sus pagos
+    const { data: alqData } = await api.get('/alquileres', { params: { limit: 50 } });
+    const alquileres = alqData?.data ?? alqData ?? [];
+    const pagos: PagoExtended[] = [];
+    for (const a of alquileres.slice(0, 20)) {
+      try {
+        const { data: pData } = await api.get(`/pagos/alquiler/${a.id}`);
+        const items = pData?.data ?? pData ?? [];
+        items.forEach((p: Pago) => pagos.push({ ...p, alquiler: a }));
+      } catch { /* skip */ }
+    }
+    return pagos.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+  },
+  staleTime: 60_000,
+});
 
 const Finanzas: React.FC = () => {
-  const { data: stats, isLoading } = useFinanceStats();
+  const navigate = useNavigate();
+  const { data: stats, isLoading: loadingStats } = useFinanceStats();
+  const { data: pagos = [], isLoading: loadingPagos } = usePagosRecientes();
+  const [filtroMetodo, setFiltroMetodo] = useState('');
+
+  const filtered = filtroMetodo ? pagos.filter(p => p.metodoPago === filtroMetodo) : pagos;
+
+  const totalFiltrado = filtered.reduce((acc, p) => acc + Number(p.monto), 0);
+
+  const columns = [
+    { header: 'Fecha',    accessor: (p: PagoExtended) => new Date(p.fecha).toLocaleDateString('es-AR') },
+    { header: 'Cliente',  accessor: (p: PagoExtended) => <strong>{p.alquiler?.cliente?.nombre ?? '—'}</strong> },
+    { header: 'Alquiler', accessor: (p: PagoExtended) => (
+      <button className="link-btn" onClick={e => { e.stopPropagation(); navigate(`/alquileres/${p.alquilerId}`); }}>
+        #{p.alquilerId.slice(0,8)}
+      </button>
+    )},
+    { header: 'Método',   accessor: (p: PagoExtended) => {
+      const cfg = METODO_CFG[p.metodoPago] ?? { label: p.metodoPago, variant: 'secondary' as BadgeVariant };
+      return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
+    }},
+    { header: 'Referencia', accessor: (p: PagoExtended) => <span className="text-muted">{p.referencia ?? '—'}</span> },
+    { header: 'Monto',    accessor: (p: PagoExtended) => (
+      <strong style={{ color: 'var(--color-success)' }}>USD {Number(p.monto).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</strong>
+    )},
+  ];
 
   return (
-    <div className="page-container">
+    <div className="finanzas-wrapper">
       <header className="page-header">
-        <div className="header-left">
+        <div className="header-info">
           <h1>Módulo de Finanzas</h1>
-          <p>Control de cobros, saldos e ingresos de la sucursal.</p>
-        </div>
-        <div className="header-actions">
-          <button className="btn-secondary">
-            <Download size={18} />
-            Exportar Reporte
-          </button>
+          <p>Control de cobros, saldos e ingresos.</p>
         </div>
       </header>
 
-      <div className="dashboard-grid">
-        <div className="stat-card card-premium">
-          <div className="stat-header">
-            <div className="stat-icon income">
-              <DollarSign size={24} />
-            </div>
-            <span className="stat-label">Total Cobrado (MTD)</span>
-          </div>
-          <div className="stat-value">
-            {isLoading ? '...' : `USD ${stats?.totalCobrado.toLocaleString()}`}
-          </div>
-          <div className="stat-footer success">
-            <ArrowUpRight size={16} />
-            <span>+12.5% vs mes anterior</span>
+      {/* KPI cards */}
+      <div className="fin-kpi-grid">
+        <div className="fin-kpi-card fin-kpi-green">
+          <DollarSign size={22} />
+          <div>
+            <span className="fin-kpi-value">
+              {loadingStats ? '...' : `USD ${Number(stats?.totalCobrado ?? 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`}
+            </span>
+            <span className="fin-kpi-label">Total Cobrado</span>
           </div>
         </div>
-
-        <div className="stat-card card-premium">
-          <div className="stat-header">
-            <div className="stat-icon debt">
-              <Wallet size={24} />
-            </div>
-            <span className="stat-label">Saldos Pendientes</span>
-          </div>
-          <div className="stat-value">USD 4,250.00</div>
-          <div className="stat-footer danger">
-            <TrendingUp size={16} />
-            <span>8 contratos próximos a vencer</span>
+        <div className="fin-kpi-card fin-kpi-blue">
+          <CreditCard size={22} />
+          <div>
+            <span className="fin-kpi-value">{loadingPagos ? '...' : pagos.length}</span>
+            <span className="fin-kpi-label">Transacciones</span>
           </div>
         </div>
-
-        <div className="stat-card card-premium">
-          <div className="stat-header">
-            <div className="stat-icon info">
-              <Calendar size={24} />
-            </div>
-            <span className="stat-label">Ingresos Proyectados</span>
+        <div className="fin-kpi-card fin-kpi-purple">
+          <TrendingUp size={22} />
+          <div>
+            <span className="fin-kpi-value">
+              {loadingPagos ? '...' : `USD ${(pagos.length ? pagos.reduce((a,p) => a + Number(p.monto), 0) / pagos.length : 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`}
+            </span>
+            <span className="fin-kpi-label">Ticket Promedio</span>
           </div>
-          <div className="stat-value">USD 12,800.00</div>
-          <div className="stat-footer info">
-            <span>Estimado para fin de mes</span>
+        </div>
+        <div className="fin-kpi-card fin-kpi-orange">
+          <Wallet size={22} />
+          <div>
+            <span className="fin-kpi-value">
+              {loadingPagos ? '...' : `USD ${totalFiltrado.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`}
+            </span>
+            <span className="fin-kpi-label">{filtroMetodo ? `Total (${filtroMetodo})` : 'Total Visible'}</span>
           </div>
         </div>
       </div>
 
-      <section className="section-container">
-        <div className="section-header">
-          <div className="title-group">
-            <Filter size={18} />
-            <h2>Flujo de Caja Reciente</h2>
-          </div>
+      {/* Filters */}
+      <div className="filters-bar card-premium">
+        <div className="select-wrapper">
+          <Filter size={14} />
+          <select value={filtroMetodo} onChange={e => setFiltroMetodo(e.target.value)}>
+            <option value="">Todos los métodos</option>
+            {Object.entries(METODO_CFG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+          </select>
         </div>
+        <span className="fin-count">{filtered.length} transacciones</span>
+      </div>
 
-        <div className="card-premium" style={{ minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-section)' }}>
-          <div className="empty-state">
-            <TrendingUp size={48} color="var(--text-muted)" />
-            <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>
-              El listado consolidado de transacciones estará disponible en la próxima actualización.
-              <br />
-              Por ahora, puede ver los cobros individuales dentro de cada <strong>detalle de alquiler</strong>.
-            </p>
-          </div>
-        </div>
-      </section>
+      <DataTable columns={columns as any} data={filtered} isLoading={loadingPagos} />
     </div>
   );
 };

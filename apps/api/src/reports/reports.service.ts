@@ -106,7 +106,7 @@ export class ReportsService {
     return new Promise((resolve) => {
       const doc = new PDFDocument({ size: 'A5', layout: 'landscape', margin: 30 });
       const buffers: Buffer[] = [];
-      doc.on('data', (chunk) => buffers.push(chunk));
+      doc.on('data', (chunk: Buffer) => buffers.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
 
       // Border and Header

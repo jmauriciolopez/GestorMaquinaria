@@ -20,17 +20,17 @@ const PenaltyPanel: React.FC<Props> = ({ alquilerId }) => {
   const { data: penalidades, isLoading } = usePenalidades(alquilerId);
   const overrideMutation = useOverridePenalidad();
   const [selectedPenalty, setSelectedPenalty] = useState<any>(null);
-  const [overrideData, setOverrideData] = useState({ montoFinal: 0, motivo: '' });
+  const [overrideData, setOverrideData] = useState({ montoOverride: 0, descripcion: '' });
 
   if (isLoading) return <div>Cargando penalidades...</div>;
 
   const handleOpenOverride = (p: any) => {
     setSelectedPenalty(p);
-    setOverrideData({ montoFinal: Number(p.montoFinal), motivo: '' });
+    setOverrideData({ montoOverride: Number(p.montoFinal), descripcion: '' });
   };
 
   const handleApplyOverride = () => {
-    if (!overrideData.motivo) return alert('Debe indicar un motivo para el ajuste');
+    if (!overrideData.descripcion) return alert('Debe indicar un motivo para el ajuste');
     overrideMutation.mutate({
       id: selectedPenalty.id,
       ...overrideData
@@ -110,8 +110,8 @@ const PenaltyPanel: React.FC<Props> = ({ alquilerId }) => {
             <label>Nuevo Monto (USD)</label>
             <input 
               type="number" 
-              value={overrideData.montoFinal}
-              onChange={(e) => setOverrideData({ ...overrideData, montoFinal: Number(e.target.value) })}
+              value={overrideData.montoOverride}
+              onChange={(e) => setOverrideData({ ...overrideData, montoOverride: Number(e.target.value) })}
             />
           </div>
 
@@ -119,8 +119,8 @@ const PenaltyPanel: React.FC<Props> = ({ alquilerId }) => {
             <label>Motivo del Ajuste / Autorización</label>
             <textarea 
               placeholder="Ej: Descuento comercial autorizado por gerencia..."
-              value={overrideData.motivo}
-              onChange={(e) => setOverrideData({ ...overrideData, motivo: e.target.value })}
+              value={overrideData.descripcion}
+              onChange={(e) => setOverrideData({ ...overrideData, descripcion: e.target.value })}
             />
           </div>
 

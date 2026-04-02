@@ -4,7 +4,7 @@ import { BaseEntity } from '../common/entities/base.entity';
 @Entity('clientes')
 export class Cliente extends BaseEntity {
   @Column({ length: 120 })
-  nombre: string;
+  nombre!: string;
 
   @Column({ name: 'razon_social', length: 120, nullable: true })
   razonSocial?: string;
@@ -28,5 +28,5 @@ export class Cliente extends BaseEntity {
   notas?: string;
 
   @Column({ default: true })
-  activo: boolean;
+  activo: boolean = true;
 }

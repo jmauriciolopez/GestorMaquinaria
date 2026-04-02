@@ -10,13 +10,13 @@ import { EstadoActivo } from '../activos/estado-activo.enum';
 @Entity('movimientos_activo')
 export class MovimientoActivo {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'activo_id', type: 'uuid' })
-  activoId: string;
+  activoId!: string;
 
   @Column({ name: 'usuario_id', type: 'uuid' })
-  usuarioId: string;
+  usuarioId!: string;
 
   @Column({ name: 'alquiler_id', type: 'uuid', nullable: true })
   alquilerId?: string;
@@ -25,13 +25,13 @@ export class MovimientoActivo {
   mantenimientoId?: string;
 
   @Column({ type: 'enum', enum: TipoMovimiento })
-  tipo: TipoMovimiento;
+  tipo!: TipoMovimiento;
 
   @Column({ name: 'estado_anterior', type: 'enum', enum: EstadoActivo, nullable: true })
   estadoAnterior?: EstadoActivo;
 
   @Column({ name: 'estado_nuevo', type: 'enum', enum: EstadoActivo })
-  estadoNuevo: EstadoActivo;
+  estadoNuevo!: EstadoActivo;
 
   @Column({ name: 'ubicacion_origen', nullable: true, type: 'text' })
   ubicacionOrigen?: string;
@@ -43,13 +43,13 @@ export class MovimientoActivo {
   observaciones?: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ManyToOne(() => Activo)
   @JoinColumn({ name: 'activo_id' })
-  activo: Activo;
+  activo!: Activo;
 
   @ManyToOne(() => Usuario)
   @JoinColumn({ name: 'usuario_id' })
-  usuario: Usuario;
+  usuario!: Usuario;
 }

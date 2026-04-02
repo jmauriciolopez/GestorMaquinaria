@@ -2,13 +2,13 @@ import { IsUUID, IsOptional, IsString, IsBoolean, IsNumber, IsArray, ValidateNes
 import { Type } from 'class-transformer';
 
 export class DanoDto {
-  @IsString() descripcion: string;
+  @IsString() descripcion!: string;
   @IsOptional() @IsNumber() costoEstimado?: number;
   @IsOptional() @IsArray() fotos?: string[];
 }
 
 export class CheckInDto {
-  @IsUUID() activoId: string;
+  @IsUUID() activoId!: string;
   @IsOptional() @IsString() condicionRetorno?: string;
   @IsOptional() checklistRetorno?: Record<string, unknown>;
   @IsOptional() @IsArray() fotosRetorno?: string[];
@@ -20,7 +20,7 @@ export class CheckInDto {
 }
 
 export class CreateInspeccionDto {
-  @IsUUID() activoId: string;
+  @IsUUID() activoId!: string;
   @IsOptional() @IsUUID() devolucionId?: string;
   @IsOptional() @IsString() resultado?: string;
   @IsOptional() @IsString() observaciones?: string;

@@ -8,17 +8,17 @@ import {
 @Entity('roles')
 export class Rol {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ length: 60, unique: true })
-  nombre: string;
+  nombre!: string;
 
   @Column({ nullable: true })
   descripcion?: string;
 
   @Column({ type: 'jsonb', default: [] })
-  permisos: string[];
+  permisos: string[] = [];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

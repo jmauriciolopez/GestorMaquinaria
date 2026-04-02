@@ -107,6 +107,7 @@ export function useCheckOut() {
     mutationFn: async ({ id, ...dto }: {
       id: string; activoId: string;
       condicionSalida?: string; observaciones?: string;
+      horometroInicial?: number; combustibleInicial?: number;
     }) => {
       const { data } = await api.post(`/alquileres/${id}/checkout`, dto);
       return data?.data ?? data;
@@ -127,6 +128,7 @@ export function useCheckIn() {
       condicionRetorno?: string; observaciones?: string;
       tieneDanios?: boolean; tieneRetraso?: boolean; horasRetraso?: number;
       danos?: { descripcion: string; costoEstimado?: number }[];
+      horometroFinal?: number; combustibleFinal?: number;
     }) => {
       const { data } = await api.post(`/devoluciones/alquiler/${alquilerId}/checkin`, dto);
       return data?.data ?? data;

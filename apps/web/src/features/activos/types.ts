@@ -8,23 +8,47 @@ export enum EstadoActivo {
   PERDIDO           = 'perdido',
 }
 
+export enum TipoMovimiento {
+  CHECK_OUT             = 'check_out',
+  CHECK_IN              = 'check_in',
+  TRASLADO              = 'traslado',
+  ENTRADA_MANTENIMIENTO = 'entrada_mantenimiento',
+  SALIDA_MANTENIMIENTO  = 'salida_mantenimiento',
+  BAJA                  = 'baja',
+  AJUSTE                = 'ajuste',
+}
+
+export interface MovimientoActivo {
+  id: string;
+  activoId: string;
+  tipo: TipoMovimiento;
+  estadoAnterior?: EstadoActivo;
+  estadoNuevo: EstadoActivo;
+  ubicacionOrigen?: string;
+  ubicacionDestino?: string;
+  observaciones?: string;
+  createdAt: string;
+  usuario?: { id: string; nombre: string };
+}
+
 export interface Activo {
   id: string;
   tenantId: string;
   sucursalId: string;
   modeloId: string;
   codigoInterno: string;
-  numeroSerie?: string;
+  numeroSerie?: string | null;
   estado: EstadoActivo;
-  ubicacionActual?: string;
-  annoFabricacion?: number;
-  fechaAdquisicion?: string;
-  valorAdquisicion?: number;
-  notas?: string;
+  ubicacionActual?: string | null;
+  annoFabricacion?: number | null;
+  fechaAdquisicion?: string | null;
+  valorAdquisicion?: number | null;
+  notas?: string | null;
   modelo?: {
     id: string;
     nombre: string;
     marca?: string;
+    especificaciones?: Record<string, string>;
     categoria?: { id: string; nombre: string };
   };
   sucursal?: { id: string; nombre: string };

@@ -15,6 +15,11 @@ export class MantenimientosController {
     return this.service.findAll(u.tenantId);
   }
 
+  @Get(':id')
+  findOne(@Param('id') id: string, @GetUsuario() u: UsuarioActivo) {
+    return this.service.findOne(id, u.tenantId);
+  }
+
   @Get('activo/:activoId')
   findByActivo(@Param('activoId') activoId: string) {
     return this.service.findByActivo(activoId);

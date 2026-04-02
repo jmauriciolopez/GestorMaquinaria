@@ -1,6 +1,6 @@
 export class AuthResponseDto {
-  accessToken: string;
-  usuario: {
+  accessToken!: string;
+  usuario!: {
     id: string;
     nombre: string;
     email: string;

@@ -4,18 +4,20 @@ import { Usuario } from '../usuarios/usuario.entity';
 
 @Entity('entregas_activo')
 export class EntregaActivo {
-  @PrimaryGeneratedColumn('uuid') id: string;
-  @Column({ name: 'alquiler_id', type: 'uuid' }) alquilerId: string;
-  @Column({ name: 'activo_id', type: 'uuid' }) activoId: string;
-  @Column({ name: 'usuario_id', type: 'uuid' }) usuarioId: string;
-  @Column({ name: 'fecha_entrega', type: 'timestamptz', default: () => 'NOW()' }) fechaEntrega: Date;
+  @PrimaryGeneratedColumn('uuid') id!: string;
+  @Column({ name: 'alquiler_id', type: 'uuid' }) alquilerId!: string;
+  @Column({ name: 'activo_id', type: 'uuid' }) activoId!: string;
+  @Column({ name: 'usuario_id', type: 'uuid' }) usuarioId!: string;
+  @Column({ name: 'fecha_entrega', type: 'timestamptz', default: () => 'NOW()' }) fechaEntrega!: Date;
+  @Column({ name: 'horometro_inicial', type: 'numeric', precision: 12, scale: 2, default: 0 }) horometroInicial!: number;
+  @Column({ name: 'combustible_inicial', type: 'int', default: 100 }) combustibleInicial!: number;
   @Column({ name: 'condicion_salida', nullable: true, type: 'text' }) condicionSalida?: string;
   @Column({ name: 'checklist_salida', type: 'jsonb', nullable: true }) checklistSalida?: Record<string, unknown>;
   @Column({ name: 'fotos_salida', type: 'jsonb', nullable: true }) fotosSalida?: string[];
   @Column({ name: 'firma_cliente', nullable: true, type: 'text' }) firmaCliente?: string;
   @Column({ nullable: true, type: 'text' }) observaciones?: string;
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' }) createdAt: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' }) createdAt!: Date;
 
-  @ManyToOne(() => Alquiler) @JoinColumn({ name: 'alquiler_id' }) alquiler: Alquiler;
-  @ManyToOne(() => Usuario) @JoinColumn({ name: 'usuario_id' }) usuario: Usuario;
+  @ManyToOne(() => Alquiler) @JoinColumn({ name: 'alquiler_id' }) alquiler!: Alquiler;
+  @ManyToOne(() => Usuario) @JoinColumn({ name: 'usuario_id' }) usuario!: Usuario;
 }

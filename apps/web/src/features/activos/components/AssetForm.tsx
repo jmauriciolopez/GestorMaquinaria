@@ -2,11 +2,11 @@ import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { 
-  useCategorias, 
-  useModelos, 
-  useSucursales, 
-  useMutateActivo 
+import {
+  useCategorias,
+  useModelos,
+  useSucursales,
+  useMutateActivo
 } from '../hooks/useActivosData';
 import { Activo, EstadoActivo } from '../types';
 import './AssetForm.css';
@@ -36,28 +36,28 @@ interface AssetFormProps {
 const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSuccess, onCancel }) => {
   const { data: categorias } = useCategorias();
   const { data: sucursales } = useSucursales();
-  
-  const { 
-    register, 
-    handleSubmit, 
-    watch, 
+
+  const {
+    register,
+    handleSubmit,
+    watch,
     setValue,
-    formState: { errors, isSubmitting } 
+    formState: { errors, isSubmitting }
   } = useForm<AssetFormValues>({
     resolver: zodResolver(assetSchema),
     defaultValues: initialData ? {
       codigoInterno: initialData.codigoInterno,
       numeroSerie: initialData.numeroSerie || '',
-      nombre: initialData.nombre,
+      nombre: initialData.modelo?.nombre,
       sucursalId: initialData.sucursal?.id,
       categoriaId: initialData.modelo?.categoria?.id,
       modeloId: initialData.modelo?.id,
       estado: initialData.estado,
       // Advanced fields (assuming they might come from backend later)
-      annoFabricacion: (initialData as any).annoFabricacion || null,
-      fechaAdquisicion: (initialData as any).fechaAdquisicion || '',
-      valorAdquisicion: (initialData as any).valorAdquisicion || null,
-      notas: (initialData as any).notas || '',
+      annoFabricacion: initialData.annoFabricacion ?? null,
+      fechaAdquisicion: initialData.fechaAdquisicion ?? '',
+      valorAdquisicion: initialData.valorAdquisicion ?? null,
+      notas: initialData.notas ?? '',
     } : {
       estado: EstadoActivo.DISPONIBLE
     }
@@ -76,7 +76,10 @@ const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSuccess, onCancel 
 
   const onSubmit = async (values: AssetFormValues) => {
     try {
-      await mutate.mutateAsync(values);
+      // Omitimos campos que solo son para control de UI floral
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { nombre, categoriaId, ...payload } = values;
+      await mutate.mutateAsync(payload as Partial<Activo>);
       onSuccess();
     } catch (error) {
       console.error('Error saving asset:', error);
@@ -159,10 +162,10 @@ const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSuccess, onCancel 
         <div className="form-grid">
           <div className="form-group">
             <label>Año de Fabricación</label>
-            <input 
-              type="number" 
-              {...register('annoFabricacion', { valueAsNumber: true })} 
-              placeholder="YYYY" 
+            <input
+              type="number"
+              {...register('annoFabricacion', { valueAsNumber: true })}
+              placeholder="YYYY"
             />
           </div>
 
@@ -173,11 +176,11 @@ const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSuccess, onCancel 
 
           <div className="form-group">
             <label>Valor de Compra (USD)</label>
-            <input 
-              type="number" 
-              step="0.01" 
-              {...register('valorAdquisicion', { valueAsNumber: true })} 
-              placeholder="0.00" 
+            <input
+              type="number"
+              step="0.01"
+              {...register('valorAdquisicion', { valueAsNumber: true })}
+              placeholder="0.00"
             />
           </div>
         </div>

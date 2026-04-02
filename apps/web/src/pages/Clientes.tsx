@@ -2,26 +2,51 @@ import React, { useState } from 'react';
 import { 
   Plus, 
   Search, 
-  User, 
   Mail, 
   Phone, 
   MapPin,
   Edit3,
   Trash2
 } from 'lucide-react';
-import { useClientes } from '../features/alquileres/hooks/useAlquileresData';
-import { Cliente } from '../features/alquileres/types';
+import Drawer from '../components/ui/Drawer';
 import DataTable from '../components/ui/DataTable';
+import ClienteForm from '../features/clientes/components/ClienteForm';
+import {
+  useClientes,
+  useDeleteCliente,
+} from '../features/clientes/hooks/useClientesData';
+import { Cliente } from '../features/clientes/types';
 import './Clientes.css';
 
 const Clientes = () => {
   const [busqueda, setBusqueda] = useState('');
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
   const { data: clientes, isLoading } = useClientes();
+  const deleteCliente = useDeleteCliente();
 
-  const filteredClientes = clientes?.filter(c => 
+  const filteredClientes = (clientes ?? []).filter((c) =>
     c.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
-    c.documento.includes(busqueda)
+    (c.documento ?? '').includes(busqueda)
   );
+
+  const handleCreate = () => {
+    setSelectedCliente(null);
+    setDrawerOpen(true);
+  };
+
+  const handleEdit = (cliente: Cliente) => {
+    setSelectedCliente(cliente);
+    setDrawerOpen(true);
+  };
+
+  const handleDelete = async (cliente: Cliente) => {
+    const confirmed = window.confirm(
+      `Se eliminará el cliente "${cliente.nombre}". Esta acción no se puede deshacer.`,
+    );
+    if (!confirmed) return;
+    await deleteCliente.mutateAsync(cliente.id);
+  };
 
   const columns = [
     { 
@@ -61,10 +86,10 @@ const Clientes = () => {
       header: 'Acciones', 
       accessor: (c: Cliente) => (
         <div className="actions-cell">
-          <button className="icon-btn" onClick={() => alert('Próximamente: Edición de cliente')} title="Editar">
+          <button className="icon-btn" onClick={() => handleEdit(c)} title="Editar">
             <Edit3 size={18} />
           </button>
-          <button className="icon-btn" onClick={() => alert('Próximamente: Eliminar cliente')} title="Eliminar">
+          <button className="icon-btn" onClick={() => handleDelete(c)} title="Eliminar">
             <Trash2 size={18} />
           </button>
         </div>
@@ -79,7 +104,7 @@ const Clientes = () => {
           <h1>Directorio de Clientes</h1>
           <p>Administración de empresas y particulares para contratos de alquiler.</p>
         </div>
-        <button className="btn-primary" onClick={() => alert('Próximamente: Formulario de nuevo cliente')}>
+        <button className="btn-primary" onClick={handleCreate}>
           <Plus size={18} />
           Nuevo Cliente
         </button>
@@ -99,9 +124,21 @@ const Clientes = () => {
 
       <DataTable 
         columns={columns as any} 
-        data={filteredClientes || []} 
+        data={filteredClientes} 
         isLoading={isLoading}
       />
+
+      <Drawer
+        isOpen={isDrawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title={selectedCliente ? 'Editar Cliente' : 'Nuevo Cliente'}
+      >
+        <ClienteForm
+          initialData={selectedCliente}
+          onCancel={() => setDrawerOpen(false)}
+          onSuccess={() => setDrawerOpen(false)}
+        />
+      </Drawer>
     </div>
   );
 };

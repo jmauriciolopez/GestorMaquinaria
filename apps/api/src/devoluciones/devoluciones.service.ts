@@ -27,12 +27,13 @@ export class DevolucionesService {
       throw new BadRequestException('El alquiler debe estar entregado para hacer check-in');
     }
 
+    const { danos, ...rest } = dto;
     const devolucion = await this.repo.save(
-      this.repo.create({ ...dto, alquilerId, usuarioId, danos: undefined }),
+      this.repo.create({ ...rest, alquilerId, usuarioId }),
     );
 
     if (dto.danos?.length) {
-      for (const d of dto.danos) {
+      for (const d of (danos || [])) {
         await this.danoRepo.save(this.danoRepo.create({ ...d, activoId: dto.activoId, devolucionId: devolucion.id }));
       }
     }
@@ -45,7 +46,7 @@ export class DevolucionesService {
     const devoluciones = await this.repo.find({ where: { alquilerId } });
     const totalItems = alquiler.items?.length ?? 0;
     const estado = devoluciones.length >= totalItems ? EstadoAlquiler.DEVUELTO : EstadoAlquiler.DEVUELTO_PARCIAL;
-    await this.alquileresService['repo'].update(alquilerId, { estado, fechaFinReal: new Date() });
+    await this.alquileresService['repo'].update(alquilerId, { estado: estado as EstadoAlquiler, fechaFinReal: new Date() });
 
     return devolucion;
   }

@@ -2,9 +2,9 @@ import { IsEnum, IsOptional, IsUUID, IsString, IsNumber, IsDateString, IsArray, 
 import { TipoMantenimiento } from '../mantenimiento.entity';
 
 export class CreateMantenimientoDto {
-  @IsUUID() activoId: string;
-  @IsEnum(TipoMantenimiento) tipo: TipoMantenimiento;
-  @IsString() titulo: string;
+  @IsUUID() activoId!: string;
+  @IsEnum(TipoMantenimiento) tipo!: TipoMantenimiento;
+  @IsString() titulo!: string;
   @IsOptional() @IsString() descripcion?: string;
   @IsOptional() @IsDateString() fechaProgramada?: string;
   @IsOptional() @IsBoolean() ignorarAlquiler?: boolean;
@@ -22,5 +22,5 @@ export class CerrarMantenimientoDto {
 }
 
 export class CreateOrdenTrabajoDto {
-  @IsString() descripcion: string;
+  @IsString() descripcion!: string;
 }

@@ -2,11 +2,11 @@ import { IsUUID, IsDateString, IsOptional, IsString, IsArray, IsEnum } from 'cla
 import { EstadoReserva } from './estado-reserva.enum';
 
 export class CreateReservaDto {
-  @IsUUID() sucursalId: string;
-  @IsUUID() clienteId: string;
-  @IsDateString() fechaInicio: string;
-  @IsDateString() fechaFin: string;
-  @IsArray() @IsUUID(undefined, { each: true }) activoIds: string[];
+  @IsUUID() sucursalId!: string;
+  @IsUUID() clienteId!: string;
+  @IsDateString() fechaInicio!: string;
+  @IsDateString() fechaFin!: string;
+  @IsArray() @IsUUID(undefined, { each: true }) activoIds!: string[];
   @IsOptional() @IsString() notas?: string;
 }
 

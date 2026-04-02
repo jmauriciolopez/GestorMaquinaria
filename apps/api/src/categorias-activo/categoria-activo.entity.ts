@@ -5,11 +5,11 @@ import { ModeloActivo } from '../modelos-activo/modelo-activo.entity';
 @Entity('categorias_activo')
 export class CategoriaActivo extends BaseEntity {
   @Column({ length: 120 })
-  nombre: string;
+  nombre!: string;
 
   @Column({ nullable: true, type: 'text' })
   descripcion?: string;
 
   @OneToMany(() => ModeloActivo, (m) => m.categoria)
-  modelos: ModeloActivo[];
+  modelos!: ModeloActivo[];
 }

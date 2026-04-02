@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../api/client';
-import { Activo, AssetStats, EstadoActivo } from '../types';
+import { Activo, AssetStats, EstadoActivo, MovimientoActivo } from '../types';
 
-export const useActivos = (params: Record<string, string> = {}) =>
+export const useActivos = (params: Record<string, string | number> = {}) =>
   useQuery({
     queryKey: ['activos', params],
     queryFn: async () => {
@@ -16,7 +16,7 @@ export const useActivo = (id?: string) =>
     queryKey: ['activos', id],
     queryFn: async () => {
       const { data } = await apiClient.get(`/activos/${id}`);
-      return data as Activo;
+      return data?.data ?? data as Activo;
     },
     enabled: !!id,
   });
@@ -26,32 +26,27 @@ export const useActivoTimeline = (id?: string) =>
     queryKey: ['activos', id, 'timeline'],
     queryFn: async () => {
       const { data } = await apiClient.get(`/movimientos-activo/activo/${id}`);
-      return data;
+      return (data?.data ?? data ?? []) as MovimientoActivo[];
     },
     enabled: !!id,
   });
 
-// Stats calculadas desde el listado real — no requiere endpoint /stats en el backend
 export const useAssetStats = () =>
   useQuery<AssetStats>({
     queryKey: ['activos', 'stats'],
     queryFn: async () => {
-      const { data } = await apiClient.get('/activos', { params: { limit: 500 } });
-      const items: Activo[] = data?.data ?? data ?? [];
-      const counts = items.reduce((acc: Record<string, number>, a: Activo) => {
-        acc[a.estado] = (acc[a.estado] ?? 0) + 1;
-        return acc;
-      }, {});
+      const { data } = await apiClient.get('/activos/stats');
+      const raw: Record<string, number> = data?.data ?? data ?? {};
       return {
-        disponible:    counts[EstadoActivo.DISPONIBLE]        ?? 0,
-        alquiler:      counts[EstadoActivo.ALQUILADO]         ?? 0,
-        mantenimiento: counts[EstadoActivo.EN_MANTENIMIENTO]  ?? 0,
-        fuera_servicio:counts[EstadoActivo.FUERA_DE_SERVICIO] ?? 0,
-        reservado:     counts[EstadoActivo.RESERVADO]         ?? 0,
-        total: items.length,
+        disponible:     raw[EstadoActivo.DISPONIBLE]        ?? 0,
+        alquiler:       raw[EstadoActivo.ALQUILADO]         ?? 0,
+        mantenimiento:  raw[EstadoActivo.EN_MANTENIMIENTO]  ?? 0,
+        fuera_servicio: raw[EstadoActivo.FUERA_DE_SERVICIO] ?? 0,
+        reservado:      raw[EstadoActivo.RESERVADO]         ?? 0,
+        total: Object.values(raw).reduce((a, b) => a + b, 0),
       };
     },
-    staleTime: 60_000,
+    staleTime: 30_000,
   });
 
 export const useActivosDisponibles = () =>
@@ -103,6 +98,19 @@ export const useMutateActivo = (id?: string) => {
     mutationFn: async (payload: Partial<Activo>) => {
       if (id) return apiClient.patch(`/activos/${id}`, payload);
       return apiClient.post('/activos', payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activos'] });
+    },
+  });
+};
+
+export const useDeleteActivo = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await apiClient.delete(`/activos/${id}`);
+      return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activos'] });

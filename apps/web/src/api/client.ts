@@ -1,9 +1,11 @@
 import axios from 'axios';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+const DEFAULT_TENANT_ID =
+  import.meta.env.VITE_TENANT_ID ?? '11111111-1111-1111-1111-111111111111';
 
 const apiClient = axios.create({
-  baseURL: `${BASE_URL}/api/v1`,
+  baseURL: `${BASE_URL}`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,7 +14,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    const tenantId = localStorage.getItem('tenantId') ?? 'default';
+    const tenantId = localStorage.getItem('tenantId') ?? DEFAULT_TENANT_ID;
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }

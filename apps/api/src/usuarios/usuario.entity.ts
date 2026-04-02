@@ -9,24 +9,24 @@ export class Usuario extends BaseEntity {
   sucursalId?: string;
 
   @Column({ name: 'rol_id', type: 'uuid' })
-  rolId: string;
+  rolId!: string;
 
   @Column({ length: 120 })
-  nombre: string;
+  nombre!: string;
 
   @Column({ length: 120, unique: false })
-  email: string;
+  email!: string;
 
   @Column({ name: 'password_hash', length: 255, select: false })
-  passwordHash: string;
+  passwordHash!: string;
 
   @Column({ default: true })
-  activo: boolean;
+  activo: boolean = true;
 
   @Column({ name: 'ultimo_login', type: 'timestamptz', nullable: true })
   ultimoLogin?: Date;
 
   @ManyToOne(() => Rol, { eager: true })
   @JoinColumn({ name: 'rol_id' })
-  rol: Rol;
+  rol!: Rol;
 }

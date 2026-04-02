@@ -4,7 +4,7 @@ import { BaseEntity } from '../common/entities/base.entity';
 @Entity('sucursales')
 export class Sucursal extends BaseEntity {
   @Column({ length: 120 })
-  nombre: string;
+  nombre!: string;
 
   @Column({ nullable: true, type: 'text' })
   direccion?: string;
@@ -16,5 +16,5 @@ export class Sucursal extends BaseEntity {
   email?: string;
 
   @Column({ default: true })
-  activa: boolean;
+  activa: boolean = true;
 }

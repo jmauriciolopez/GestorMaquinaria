@@ -97,3 +97,48 @@
   color: var(--color-text-muted);
   font-style: italic;
 }
+
+/* Updated marker colors matching TipoMovimiento */
+.marker-info     { color: var(--color-info);    border-color: rgba(59,130,246,0.3); }
+.marker-success  { color: var(--color-success); border-color: rgba(16,185,129,0.3); }
+.marker-warning  { color: var(--color-warning); border-color: rgba(245,158,11,0.3); }
+.marker-error    { color: var(--color-error);   border-color: rgba(239,68,68,0.3); }
+.marker-primary  { color: var(--color-primary); border-color: rgba(99,102,241,0.3); }
+.marker-secondary{ color: var(--color-text-muted); }
+
+.timeline-states {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.state-chip {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  color: var(--color-text-muted);
+}
+
+.state-chip.state-to {
+  background: rgba(99,102,241,0.15);
+  color: var(--color-primary);
+}
+
+.state-arrow {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.timeline-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  font-style: normal;
+}

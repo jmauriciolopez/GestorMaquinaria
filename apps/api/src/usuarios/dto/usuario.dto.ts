@@ -9,21 +9,21 @@ import {
 
 export class CreateUsuarioDto {
   @IsUUID()
-  rolId: string;
+  rolId!: string;
 
   @IsOptional()
   @IsUUID()
   sucursalId?: string;
 
   @IsString()
-  nombre: string;
+  nombre!: string;
 
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(8)
-  password: string;
+  password!: string;
 }
 
 export class UpdateUsuarioDto {
@@ -47,9 +47,9 @@ export class UpdateUsuarioDto {
 export class CambiarPasswordDto {
   @IsString()
   @MinLength(8)
-  passwordActual: string;
+  passwordActual!: string;
 
   @IsString()
   @MinLength(8)
-  passwordNuevo: string;
+  passwordNuevo!: string;
 }

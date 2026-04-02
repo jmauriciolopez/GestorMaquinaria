@@ -3,9 +3,9 @@ import { TipoMovimiento } from '../tipo-movimiento.enum';
 import { EstadoActivo } from '../../activos/estado-activo.enum';
 
 export class CreateMovimientoDto {
-  @IsUUID() activoId: string;
-  @IsEnum(TipoMovimiento) tipo: TipoMovimiento;
-  @IsEnum(EstadoActivo) estadoNuevo: EstadoActivo;
+  @IsUUID() activoId!: string;
+  @IsEnum(TipoMovimiento) tipo!: TipoMovimiento;
+  @IsEnum(EstadoActivo) estadoNuevo!: EstadoActivo;
   @IsOptional() @IsUUID() alquilerId?: string;
   @IsOptional() @IsUUID() mantenimientoId?: string;
   @IsOptional() @IsString() ubicacionOrigen?: string;

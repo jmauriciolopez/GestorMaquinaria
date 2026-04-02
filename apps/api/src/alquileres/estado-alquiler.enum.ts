@@ -6,4 +6,5 @@ export enum EstadoAlquiler {
   DEVUELTO = 'devuelto',
   CANCELADO = 'cancelado',
   VENCIDO = 'vencido',
+  FINALIZADO = 'finalizado',
 }

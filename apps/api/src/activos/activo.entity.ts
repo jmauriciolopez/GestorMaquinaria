@@ -7,19 +7,19 @@ import { EstadoActivo } from './estado-activo.enum';
 @Entity('activos')
 export class Activo extends BaseEntity {
   @Column({ name: 'sucursal_id', type: 'uuid' })
-  sucursalId: string;
+  sucursalId!: string;
 
   @Column({ name: 'modelo_id', type: 'uuid' })
-  modeloId: string;
+  modeloId!: string;
 
   @Column({ name: 'codigo_interno', length: 60 })
-  codigoInterno: string;
+  codigoInterno!: string;
 
   @Column({ name: 'numero_serie', length: 120, nullable: true })
   numeroSerie?: string;
 
   @Column({ type: 'enum', enum: EstadoActivo, default: EstadoActivo.DISPONIBLE })
-  estado: EstadoActivo;
+  estado!: EstadoActivo;
 
   @Column({ name: 'ubicacion_actual', nullable: true, type: 'text' })
   ubicacionActual?: string;
@@ -38,9 +38,9 @@ export class Activo extends BaseEntity {
 
   @ManyToOne(() => ModeloActivo, (m) => m.activos, { eager: true })
   @JoinColumn({ name: 'modelo_id' })
-  modelo: ModeloActivo;
+  modelo!: ModeloActivo;
 
   @ManyToOne(() => Sucursal)
   @JoinColumn({ name: 'sucursal_id' })
-  sucursal: Sucursal;
+  sucursal!: Sucursal;
 }

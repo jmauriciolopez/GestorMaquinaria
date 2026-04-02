@@ -4,19 +4,21 @@ import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { useAlquiler, useConfirmarAlquiler, usePenalidades } from '../features/alquileres/hooks/useAlquileresData';
 import { CheckOutForm } from '../features/alquileres/components/CheckOutForm';
 import { CheckInForm } from '../features/alquileres/components/CheckInForm';
+import PaymentSummary from '../features/alquileres/components/PaymentSummary';
+import { EstadoAlquiler } from '../features/alquileres/types';
 import Badge, { BadgeVariant } from '../components/ui/Badge';
 import Drawer from '../components/ui/Drawer';
 import { useToast } from '../context/ToastContext';
 import './AlquilerDetail.css';
 
-const estadoBadge: Record<string, { label: string; variant: BadgeVariant }> = {
-  borrador:         { label: 'Borrador',     variant: 'secondary' },
-  confirmado:       { label: 'Confirmado',   variant: 'primary'   },
-  entregado:        { label: 'Entregado',    variant: 'info'      },
-  devuelto_parcial: { label: 'Dev. Parcial', variant: 'warning'   },
-  devuelto:         { label: 'Devuelto',     variant: 'success'   },
-  cancelado:        { label: 'Cancelado',    variant: 'error'     },
-  vencido:          { label: 'Vencido',      variant: 'error'     },
+const estadoBadge: Record<EstadoAlquiler, { label: string; variant: BadgeVariant }> = {
+  [EstadoAlquiler.BORRADOR]:         { label: 'Borrador',     variant: 'secondary' },
+  [EstadoAlquiler.CONFIRMADO]:       { label: 'Confirmado',   variant: 'primary'   },
+  [EstadoAlquiler.ENTREGADO]:        { label: 'Entregado',    variant: 'info'      },
+  [EstadoAlquiler.DEVUELTO_PARCIAL]: { label: 'Dev. Parcial', variant: 'warning'   },
+  [EstadoAlquiler.DEVUELTO]:         { label: 'Devuelto',     variant: 'success'   },
+  [EstadoAlquiler.CANCELADO]:        { label: 'Cancelado',    variant: 'error'     },
+  [EstadoAlquiler.FINALIZADO]:       { label: 'Finalizado',   variant: 'success'   },
 };
 
 const AlquilerDetail = () => {
@@ -32,9 +34,9 @@ const AlquilerDetail = () => {
   if (!alquiler) return <div className="detail-loading">Alquiler no encontrado.</div>;
 
   const cfg = estadoBadge[alquiler.estado] ?? { label: alquiler.estado, variant: 'secondary' as BadgeVariant };
-  const puedeConfirmar = alquiler.estado === 'borrador';
-  const puedeCheckOut  = alquiler.estado === 'confirmado';
-  const puedeCheckIn   = alquiler.estado === 'entregado' || alquiler.estado === 'devuelto_parcial';
+  const puedeConfirmar = alquiler.estado === EstadoAlquiler.BORRADOR;
+  const puedeCheckOut  = alquiler.estado === EstadoAlquiler.CONFIRMADO;
+  const puedeCheckIn   = alquiler.estado === EstadoAlquiler.ENTREGADO || alquiler.estado === EstadoAlquiler.DEVUELTO_PARCIAL;
 
   const handleConfirmar = async () => {
     try { await confirmar.mutateAsync(id!); success('Alquiler confirmado'); refetch(); }
@@ -77,7 +79,7 @@ const AlquilerDetail = () => {
             <div className="info-row"><span>Cliente</span><strong>{alquiler.cliente?.nombre}</strong></div>
             <div className="info-row"><span>Inicio</span><strong>{new Date(alquiler.fechaInicio).toLocaleDateString('es-AR')}</strong></div>
             <div className="info-row"><span>Vencimiento</span>
-              <strong style={{ color: new Date(alquiler.fechaFinPrevista) < new Date() && alquiler.estado === 'entregado' ? '#ef4444' : 'inherit' }}>
+              <strong style={{ color: new Date(alquiler.fechaFinPrevista) < new Date() && (alquiler.estado === EstadoAlquiler.ENTREGADO || alquiler.estado === EstadoAlquiler.DEVUELTO_PARCIAL) ? '#ef4444' : 'inherit' }}>
                 {new Date(alquiler.fechaFinPrevista).toLocaleDateString('es-AR')}
               </strong>
             </div>
@@ -93,7 +95,7 @@ const AlquilerDetail = () => {
               <li key={item.id} className="item-row">
                 <div>
                   <strong>{item.activo?.codigoInterno ?? item.activoId.slice(0, 8)}</strong>
-                  <span className="item-modelo">{(item.activo as any)?.nombre ?? item.activo?.codigoInterno}</span>
+                  <span className="item-modelo">{item.activo?.nombre ?? item.activo?.codigoInterno}</span>
                 </div>
                 <span className="item-precio">${Number(item.precioUnitario).toFixed(2)}</span>
               </li>
@@ -137,6 +139,9 @@ const AlquilerDetail = () => {
           </div>
         )}
       </div>
+
+      {/* Pagos — historial + registrar cobro */}
+      <PaymentSummary alquiler={alquiler} />
 
       <Drawer isOpen={drawerMode === 'checkout'} onClose={() => setDrawerMode(null)} title="Check-Out — Entrega de equipos">
         {alquiler.items && (

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
+    "build:clean": "node -e \"const fs=require('fs'); fs.rmSync('dist',{recursive:true,force:true}); fs.rmSync('tsconfig.tsbuildinfo',{force:true});\" && nest build",
     "start": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "test": "jest",
@@ -13,7 +14,9 @@
     "migration:revert": "typeorm-ts-node-commonjs -d src/database/data-source.ts migration:revert",
     "migration:generate": "typeorm-ts-node-commonjs -d src/database/data-source.ts migration:generate",
     "migration:show": "typeorm-ts-node-commonjs -d src/database/data-source.ts migration:show",
-    "migration:create": "typeorm-ts-node-commonjs migration:create"
+    "migration:create": "typeorm-ts-node-commonjs migration:create",
+    "seed:users": "node ../../node_modules/ts-node/dist/bin.js src/database/seeds/users.seed.ts",
+    "seed:all": "node ../../node_modules/ts-node/dist/bin.js src/database/seeds/all.seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

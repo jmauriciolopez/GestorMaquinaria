@@ -6,14 +6,14 @@ import { EstadoActivo } from '../estado-activo.enum';
 
 export class CreateActivoDto {
   @IsUUID()
-  sucursalId: string;
+  sucursalId!: string;
 
   @IsUUID()
-  modeloId: string;
+  modeloId!: string;
 
   @IsString()
   @MaxLength(60)
-  codigoInterno: string;
+  codigoInterno!: string;
 
   @IsOptional()
   @IsString()

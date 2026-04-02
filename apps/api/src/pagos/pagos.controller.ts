@@ -16,6 +16,11 @@ export class PagosController {
     return this.service.registrar(dto, u.sub, u.tenantId);
   }
 
+  @Get(':id')
+  findOne(@Param('id') id: string, @GetUsuario() u: UsuarioActivo) {
+    return this.service.findOne(id, u.tenantId);
+  }
+
   @Get('alquiler/:id')
   findByAlquiler(@Param('id') id: string, @GetUsuario() u: UsuarioActivo) {
     return this.service.findByAlquiler(id, u.tenantId);

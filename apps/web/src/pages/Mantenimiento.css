@@ -1,0 +1,85 @@
+.mantenimiento-wrapper { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.mant-summary { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.mant-form { display: flex; flex-direction: column; gap: 1rem; }
+
+.mant-action-btn { width: 100%; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+
+.mant-detail { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.mant-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.mant-detail-header h3 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.25rem; }
+
+.mant-activo-code { font-size: 0.8125rem; color: var(--color-text-muted); font-family: monospace; }
+
+.mant-desc { font-size: 0.875rem; color: var(--color-text-muted); line-height: 1.6; }
+
+.mant-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255,255,255,0.02);
+  border-radius: var(--border-radius-md);
+}
+
+.mant-meta-item { display: flex; flex-direction: column; gap: 0.2rem; }
+.mant-meta-item label { font-size: 0.6875rem; text-transform: uppercase; color: var(--color-text-muted); letter-spacing: 0.05em; }
+.mant-meta-item span  { font-size: 0.9375rem; font-weight: 600; color: #fff; }
+
+.mant-ot-section, .mant-close-section {
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 1.25rem;
+}
+
+.mant-ot-section h4, .mant-close-section h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-accent);
+  margin-bottom: 0.75rem;
+}
+
+.mant-ot-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 0.875rem;
+}
+
+.mant-ot-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.mant-ot-form input { flex: 1; }
+
+.mant-loading { padding: 2rem; text-align: center; color: var(--color-text-muted); }
+
+.capitalize { text-transform: capitalize; }
+.mono { font-family: monospace; color: var(--color-primary); }
+
+.btn-success {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-success);
+  color: #fff;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+.btn-success:hover { opacity: 0.85; }
+.btn-success:disabled { opacity: 0.5; cursor: not-allowed; }

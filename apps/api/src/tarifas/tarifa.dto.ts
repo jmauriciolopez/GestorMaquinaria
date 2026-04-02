@@ -1,7 +1,7 @@
 import { IsString, IsOptional, IsUUID, IsNumber, IsBoolean } from 'class-validator';
 
 export class CreateTarifaDto {
-  @IsString() nombre: string;
+  @IsString() nombre!: string;
   @IsOptional() @IsUUID() modeloId?: string;
   @IsOptional() @IsUUID() activoId?: string;
   @IsOptional() @IsNumber() precioPorHora?: number;

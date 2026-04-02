@@ -1,12 +1,12 @@
 
 export enum EstadoAlquiler {
-  BORRADOR = 'BORRADOR',
-  CONFIRMADO = 'CONFIRMADO',
-  ENTREGADO = 'ENTREGADO',
-  DEVUELTO_PARCIAL = 'DEVUELTO_PARCIAL',
-  DEVUELTO = 'DEVUELTO',
-  CANCELADO = 'CANCELADO',
-  FINALIZADO = 'FINALIZADO',
+  BORRADOR         = 'borrador',
+  CONFIRMADO       = 'confirmado',
+  ENTREGADO        = 'entregado',
+  DEVUELTO_PARCIAL = 'devuelto_parcial',
+  DEVUELTO         = 'devuelto',
+  CANCELADO        = 'cancelado',
+  FINALIZADO       = 'finalizado',
 }
 
 export interface Cliente {

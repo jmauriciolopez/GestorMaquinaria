@@ -2,21 +2,21 @@ import React, { useState } from 'react';
 import { Plus, Filter, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAlquileres } from '../features/alquileres/hooks/useAlquileresData';
-import { Alquiler } from '../features/alquileres/types';
+import { Alquiler, EstadoAlquiler } from '../features/alquileres/types';
 import DataTable from '../components/ui/DataTable';
 import Badge, { BadgeVariant } from '../components/ui/Badge';
 import Drawer from '../components/ui/Drawer';
 import { NuevoAlquilerWizard } from '../features/alquileres/components/NuevoAlquilerWizard';
 import './Alquileres.css';
 
-const estadoBadge: Record<string, { label: string; variant: BadgeVariant }> = {
-  borrador:         { label: 'Borrador',      variant: 'secondary' },
-  confirmado:       { label: 'Confirmado',    variant: 'primary'   },
-  entregado:        { label: 'Entregado',     variant: 'info'      },
-  devuelto_parcial: { label: 'Dev. Parcial',  variant: 'warning'   },
-  devuelto:         { label: 'Devuelto',      variant: 'success'   },
-  cancelado:        { label: 'Cancelado',     variant: 'error'     },
-  vencido:          { label: 'Vencido',       variant: 'error'     },
+const estadoBadge: Record<EstadoAlquiler, { label: string; variant: BadgeVariant }> = {
+  [EstadoAlquiler.BORRADOR]:         { label: 'Borrador',      variant: 'secondary' },
+  [EstadoAlquiler.CONFIRMADO]:       { label: 'Confirmado',    variant: 'primary'   },
+  [EstadoAlquiler.ENTREGADO]:        { label: 'Entregado',     variant: 'info'      },
+  [EstadoAlquiler.DEVUELTO_PARCIAL]: { label: 'Dev. Parcial',  variant: 'warning'   },
+  [EstadoAlquiler.DEVUELTO]:         { label: 'Devuelto',      variant: 'success'   },
+  [EstadoAlquiler.CANCELADO]:        { label: 'Cancelado',     variant: 'error'     },
+  [EstadoAlquiler.FINALIZADO]:       { label: 'Finalizado',    variant: 'success'   },
 };
 
 const Alquileres = () => {
@@ -36,7 +36,7 @@ const Alquileres = () => {
     { header: 'Equipos', accessor: (a: Alquiler) => a.items?.length ?? 0 },
     { header: 'Inicio',  accessor: (a: Alquiler) => new Date(a.fechaInicio).toLocaleDateString('es-AR') },
     { header: 'Vence',   accessor: (a: Alquiler) => {
-      const vencido = new Date(a.fechaFinPrevista) < new Date() && a.estado === 'entregado';
+      const vencido = new Date(a.fechaFinPrevista) < new Date() && a.estado === EstadoAlquiler.ENTREGADO;
       return <span style={{ color: vencido ? '#ef4444' : 'inherit' }}>{new Date(a.fechaFinPrevista).toLocaleDateString('es-AR')}</span>;
     }},
     { header: 'Total',   accessor: (a: Alquiler) => `$${Number(a.subtotal).toFixed(2)}` },

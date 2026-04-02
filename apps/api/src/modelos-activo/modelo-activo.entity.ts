@@ -10,16 +10,16 @@ import { Activo } from '../activos/activo.entity';
 @Entity('modelos_activo')
 export class ModeloActivo {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'tenant_id', type: 'uuid' })
-  tenantId: string;
+  tenantId!: string;
 
   @Column({ name: 'categoria_id', type: 'uuid' })
-  categoriaId: string;
+  categoriaId!: string;
 
   @Column({ length: 120 })
-  nombre: string;
+  nombre!: string;
 
   @Column({ length: 80, nullable: true })
   marca?: string;
@@ -34,15 +34,15 @@ export class ModeloActivo {
   imagenUrl?: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ManyToOne(() => CategoriaActivo, (c) => c.modelos)
   @JoinColumn({ name: 'categoria_id' })
-  categoria: CategoriaActivo;
+  categoria!: CategoriaActivo;
 
   @OneToMany(() => Activo, (a) => a.modelo)
-  activos: Activo[];
+  activos!: Activo[];
 }
