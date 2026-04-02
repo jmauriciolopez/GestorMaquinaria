@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
@@ -34,6 +35,11 @@ import jwtConfig from './config/jwt.config';
       load: [appConfig, databaseConfig, jwtConfig],
       envFilePath: '.env',
     }),
+    ThrottlerModule.forRoot([
+      { name: 'short', ttl: 1000,  limit: 10  },  // 10 req/seg
+      { name: 'medium', ttl: 60000, limit: 200 },  // 200 req/min
+      { name: 'long',  ttl: 3600000, limit: 2000 },// 2000 req/hora
+    ]),
     ScheduleModule.forRoot(),
     DatabaseModule,
     HealthModule,
@@ -56,6 +62,9 @@ import jwtConfig from './config/jwt.config';
     PagosModule,
     ReportsModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

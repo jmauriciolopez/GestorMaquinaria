@@ -4,14 +4,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
 const apiClient = axios.create({
-  baseURL: `${BASE_URL}`,
+  baseURL: `${BASE_URL}/api/v1`,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 10000,
+  timeout: 15000,
 });
 
 apiClient.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem('token');
-  const tenantId = (await AsyncStorage.getItem('tenantId')) ?? 'default';
+  const token    = await AsyncStorage.getItem('auth_token');
+  const tenantId = (await AsyncStorage.getItem('tenant_id')) ?? 'default';
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }

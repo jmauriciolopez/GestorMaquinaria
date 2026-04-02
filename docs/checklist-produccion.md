@@ -5,8 +5,8 @@
 ### Seguridad
 - [ ] Cambiar `JWT_SECRET` por uno generado con `openssl rand -base64 64`
 - [x] Migraciones TypeORM — `synchronize: false` en producción, `migrationsRun: true`
-- [ ] Configurar rate limiting (`@nestjs/throttler`)
-- [ ] Agregar helmet para headers HTTP seguros
+- [x] Rate limiting — `@nestjs/throttler` (10/seg, 200/min, 2000/hora)
+- [x] Helmet — headers HTTP seguros
 - [ ] Validar que `CORS_ORIGIN` apunte solo al dominio del frontend
 - [ ] Revisar que ningún endpoint con datos sensibles sea `@Public()`
 - [ ] Hashear logs — no loguear passwords ni tokens
@@ -37,15 +37,18 @@
 - [ ] Build optimizado (`npm run build`)
 - [ ] Configurar CDN para assets estáticos
 - [ ] Agregar error boundaries en componentes críticos
-- [ ] Testear flujo completo: login → alquiler → checkout → checkin
+- [x] Dashboard con datos reales del backend
+- [x] Formulario completo de nuevo alquiler con selección de activos
+- [x] Flujo de checkout/checkin desde la web
+- [x] Manejo de errores global (toast notifications)
 
 ## App Mobile
 
 - [ ] Configurar `EXPO_PUBLIC_API_URL` con URL de producción
 - [ ] Build de producción con EAS Build
-- [ ] Implementar `@react-native-async-storage/async-storage` real
-- [ ] Implementar scanner QR con `expo-camera` o `expo-barcode-scanner`
-- [ ] Implementar carga de fotos con `expo-image-picker`
+- [x] AsyncStorage real (`@react-native-async-storage/async-storage`)
+- [x] Scanner QR con `expo-camera` + `expo-barcode-scanner`
+- [x] Carga de fotos con `expo-image-picker` (cámara + galería)
 - [ ] Testear en dispositivo físico Android e iOS
 
 ## Funcionalidades pendientes de completar
@@ -53,8 +56,6 @@
 - [ ] Integración real de pagos (MercadoPago / Stripe)
 - [ ] Implementación real de email (SendGrid / SES)
 - [ ] Implementación real de WhatsApp (Twilio / Meta API)
-- [ ] Scanner QR en mobile
-- [ ] Upload de fotos a S3
-- [ ] Dashboard con datos reales conectados al backend
+- [ ] Upload de fotos a S3 (actualmente se guardan URIs locales)
 - [ ] Tests unitarios y e2e
 - [ ] Multi-sucursal completo con filtros por sucursal

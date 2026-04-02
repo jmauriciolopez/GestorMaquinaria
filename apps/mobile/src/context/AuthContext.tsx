@@ -1,10 +1,20 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authApi } from '../api/endpoints';
 
+interface UsuarioInfo {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: string;
+  tenantId: string;
+  sucursalId?: string;
+}
+
 interface AuthState {
   token: string | null;
-  usuario: Record<string, unknown> | null;
+  usuario: UsuarioInfo | null;
+  loading: boolean;
 }
 
 interface AuthContextType extends AuthState {
@@ -15,20 +25,39 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const STORAGE_KEYS = { TOKEN: 'auth_token', USUARIO: 'auth_usuario', TENANT: 'tenant_id' };
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<AuthState>({ token: null, usuario: null });
+  const [state, setState] = useState<AuthState>({ token: null, usuario: null, loading: true });
+
+  // Restaurar sesión al arrancar
+  useEffect(() => {
+    (async () => {
+      try {
+        const [token, usuarioJson] = await AsyncStorage.multiGet([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USUARIO]);
+        const tokenVal = token[1];
+        const usuarioVal = usuarioJson[1] ? JSON.parse(usuarioJson[1]) : null;
+        setState({ token: tokenVal, usuario: usuarioVal, loading: false });
+      } catch {
+        setState((prev) => ({ ...prev, loading: false }));
+      }
+    })();
+  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await authApi.login(email, password);
-    const { accessToken, usuario } = res.data;
-    await AsyncStorage.setItem('token', accessToken);
-    await AsyncStorage.setItem('tenantId', usuario.tenantId ?? 'default');
-    setState({ token: accessToken, usuario });
+    const { accessToken, usuario } = res.data?.data ?? res.data;
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.TOKEN,   accessToken],
+      [STORAGE_KEYS.USUARIO, JSON.stringify(usuario)],
+      [STORAGE_KEYS.TENANT,  usuario.tenantId ?? 'default'],
+    ]);
+    setState({ token: accessToken, usuario, loading: false });
   }, []);
 
   const logout = useCallback(async () => {
-    await AsyncStorage.multiRemove(['token', 'tenantId']);
-    setState({ token: null, usuario: null });
+    await AsyncStorage.multiRemove(Object.values(STORAGE_KEYS));
+    setState({ token: null, usuario: null, loading: false });
   }, []);
 
   return (
