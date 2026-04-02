@@ -1,267 +1,156 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Calendar, 
-  User, 
-  Package, 
-  AlertCircle,
-  Truck,
-  RotateCcw,
-  DollarSign,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  MoreVertical,
-  FileText
-} from 'lucide-react';
-import { useReports } from '../hooks/useReports';
-import { 
-  useAlquiler, 
-  useConfirmarAlquiler,
-  usePenalidades 
-} from '../features/alquileres/hooks/useAlquileresData';
-import { EstadoAlquiler, AlquilerItem } from '../features/alquileres/types';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { useAlquiler, useConfirmarAlquiler, usePenalidades } from '../features/alquileres/hooks/useAlquileresData';
+import { CheckOutForm } from '../features/alquileres/components/CheckOutForm';
+import { CheckInForm } from '../features/alquileres/components/CheckInForm';
 import Badge, { BadgeVariant } from '../components/ui/Badge';
 import Drawer from '../components/ui/Drawer';
-import CheckInOutForm from '../features/alquileres/components/CheckInOutForm';
-import PenaltyPanel from '../features/alquileres/components/PenaltyPanel';
-import PaymentSummary from '../features/alquileres/components/PaymentSummary';
+import { useToast } from '../context/ToastContext';
 import './AlquilerDetail.css';
 
-const getStatusBadge = (estado?: EstadoAlquiler) => {
-  if (!estado) return null;
-  const map: Record<EstadoAlquiler, { label: string; variant: BadgeVariant }> = {
-    [EstadoAlquiler.BORRADOR]: { label: 'Borrador', variant: 'secondary' },
-    [EstadoAlquiler.CONFIRMADO]: { label: 'Confirmado', variant: 'primary' },
-    [EstadoAlquiler.ENTREGADO]: { label: 'En Curso', variant: 'info' },
-    [EstadoAlquiler.DEVUELTO_PARCIAL]: { label: 'Dev. Parcial', variant: 'warning' },
-    [EstadoAlquiler.DEVUELTO]: { label: 'Devuelto', variant: 'success' },
-    [EstadoAlquiler.CANCELADO]: { label: 'Cancelado', variant: 'error' },
-    [EstadoAlquiler.FINALIZADO]: { label: 'Finalizado', variant: 'success' },
-  };
-  const config = map[estado] || { label: estado, variant: 'secondary' };
-  return <Badge variant={config.variant}>{config.label}</Badge>;
+const estadoBadge: Record<string, { label: string; variant: BadgeVariant }> = {
+  borrador:         { label: 'Borrador',     variant: 'secondary' },
+  confirmado:       { label: 'Confirmado',   variant: 'primary'   },
+  entregado:        { label: 'Entregado',    variant: 'info'      },
+  devuelto_parcial: { label: 'Dev. Parcial', variant: 'warning'   },
+  devuelto:         { label: 'Devuelto',     variant: 'success'   },
+  cancelado:        { label: 'Cancelado',    variant: 'error'     },
+  vencido:          { label: 'Vencido',      variant: 'error'     },
 };
 
 const AlquilerDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'items' | 'penalties' | 'payments'>('items');
-  const [selectedItem, setSelectedItem] = useState<{ item: AlquilerItem; mode: 'out' | 'in' } | null>(null);
+  const { data: alquiler, isLoading, refetch } = useAlquiler(id);
+  const { data: penalidades = [] } = usePenalidades(id);
+  const confirmar = useConfirmarAlquiler();
+  const { success, error } = useToast();
+  const [drawerMode, setDrawerMode] = useState<null | 'checkout' | 'checkin'>(null);
 
-  const { data: alquiler, isLoading } = useAlquiler(id);
-  const { data: penalidades } = usePenalidades(id);
-  const { downloadContract } = useReports();
-  const confirmarMutation = useConfirmarAlquiler();
+  if (isLoading) return <div className="detail-loading">Cargando alquiler...</div>;
+  if (!alquiler) return <div className="detail-loading">Alquiler no encontrado.</div>;
 
-  if (isLoading) return <div className="page-loader">Cargando contrato...</div>;
-  if (!alquiler) return <div className="page-error">No se encontró el alquiler.</div>;
+  const cfg = estadoBadge[alquiler.estado] ?? { label: alquiler.estado, variant: 'secondary' as BadgeVariant };
+  const puedeConfirmar = alquiler.estado === 'borrador';
+  const puedeCheckOut  = alquiler.estado === 'confirmado';
+  const puedeCheckIn   = alquiler.estado === 'entregado' || alquiler.estado === 'devuelto_parcial';
 
-  const handleConfirmar = () => {
-    if (confirm('¿Confirmar esta reserva para convertirla en alquiler activo?')) {
-      confirmarMutation.mutate(alquiler.id);
-    }
+  const handleConfirmar = async () => {
+    try { await confirmar.mutateAsync(id!); success('Alquiler confirmado'); refetch(); }
+    catch { error('No se pudo confirmar el alquiler'); }
   };
 
   return (
-    <div className="alquiler-detail-wrapper">
-      <header className="page-header-simple">
-        <button className="back-btn" onClick={() => navigate('/alquileres')}>
-          <ArrowLeft size={20} />
-          Volver a Listado
+    <div className="alquiler-detail">
+      <div className="detail-header">
+        <button className="btn-back" onClick={() => navigate('/alquileres')}>
+          <ArrowLeft size={16} /> Volver
         </button>
-        <div className="header-actions">
-          {alquiler.estado === EstadoAlquiler.BORRADOR && (
-            <button className="btn-primary" onClick={handleConfirmar} disabled={confirmarMutation.isPending}>
-              <CheckCircle2 size={18} />
-              Confirmar Alquiler
+        <div className="detail-title">
+          <h1>Alquiler <span className="detail-id">#{alquiler.id.slice(0, 8)}</span></h1>
+          <Badge variant={cfg.variant}>{cfg.label}</Badge>
+        </div>
+        <div className="detail-actions">
+          {puedeConfirmar && (
+            <button className="btn-primary" onClick={handleConfirmar} disabled={confirmar.isPending}>
+              <CheckCircle size={16} /> Confirmar
             </button>
           )}
-          {alquiler.estado !== EstadoAlquiler.CANCELADO && alquiler.estado !== EstadoAlquiler.FINALIZADO && (
-            <button className="btn-secondary text-error">
-              <XCircle size={18} />
-              Cancelar
+          {puedeCheckOut && (
+            <button className="btn-primary" onClick={() => setDrawerMode('checkout')}>
+              📤 Check-Out
             </button>
           )}
-          <button 
-            className="btn-secondary" 
-            onClick={() => downloadContract(alquiler.id)}
-            title="Descargar Contrato PDF"
-          >
-            <FileText size={18} />
-            Contrato
-          </button>
-          <button className="btn-icon-more">
-            <MoreVertical size={20} />
-          </button>
+          {puedeCheckIn && (
+            <button className="btn-success" onClick={() => setDrawerMode('checkin')}>
+              📥 Check-In
+            </button>
+          )}
         </div>
-      </header>
-
-      <div className="detail-layout">
-        <div className="detail-main">
-          {/* Main Info Card */}
-          <section className="card-premium main-info">
-            <div className="info-header">
-              <div className="title-group">
-                <span className="ref-id">CONTRATO #{alquiler.id.split('-')[0].toUpperCase()}</span>
-                <h1>{alquiler.cliente?.nombre}</h1>
-                <div className="meta-info">
-                  <div className="meta-item">
-                    <User size={14} />
-                    <span>{alquiler.cliente?.documento}</span>
-                  </div>
-                  <div className="meta-item">
-                    <Calendar size={14} />
-                    <span>Inicia: {new Date(alquiler.fechaInicio).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="status-group">
-                {getStatusBadge(alquiler.estado)}
-              </div>
-            </div>
-          </section>
-
-          {/* Navigation Tabs */}
-          <nav className="detail-tabs">
-            <button 
-              className={activeTab === 'items' ? 'active' : ''} 
-              onClick={() => setActiveTab('items')}
-            >
-              <Package size={18} />
-              Equipos y Entrega
-            </button>
-            <button 
-              className={activeTab === 'penalties' ? 'active' : ''} 
-              onClick={() => setActiveTab('penalties')}
-            >
-              <AlertCircle size={18} />
-              Penalidades ({penalidades?.length || 0})
-            </button>
-            <button 
-              className={activeTab === 'payments' ? 'active' : ''} 
-              onClick={() => setActiveTab('payments')}
-            >
-              <DollarSign size={18} />
-              Pagos y Saldo
-            </button>
-          </nav>
-
-          {/* Tab Content */}
-          <div className="tab-content">
-            {activeTab === 'items' && (
-              <section className="items-list">
-                {alquiler.items.map((item) => (
-                  <div key={item.id} className="asset-item-card card-premium">
-                    <div className="asset-info">
-                      <div className="asset-title">
-                        <strong>{item.activo?.nombre || 'Equipo no vinculado'}</strong>
-                        <span>ID: {item.activo?.codigoInterno || '---'}</span>
-                      </div>
-                      <div className="asset-status">
-                        {item.activo?.estado === 'ALQUILADO' ? (
-                          <Badge variant="info">En Posesión</Badge>
-                        ) : item.activo?.estado === 'DISPONIBLE' ? (
-                          <Badge variant="success">Pendiente Entrega</Badge>
-                        ) : (
-                          <Badge variant="secondary">{item.activo?.estado || 'Desconocido'}</Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="asset-actions">
-                      {alquiler.estado === EstadoAlquiler.CONFIRMADO && item.activo?.estado !== 'ALQUILADO' && (
-                        <button 
-                          className="btn-action-primary"
-                          onClick={() => setSelectedItem({ item, mode: 'out' })}
-                        >
-                          <Truck size={16} />
-                          Entregar Activo
-                        </button>
-                      )}
-                      {alquiler.estado === EstadoAlquiler.ENTREGADO && (
-                        <button 
-                          className="btn-action-outline"
-                          onClick={() => setSelectedItem({ item, mode: 'in' })}
-                        >
-                          <RotateCcw size={16} />
-                          Registrar Devolución
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </section>
-            )}
-
-            {activeTab === 'penalties' && (
-              <PenaltyPanel alquilerId={alquiler.id} />
-            )}
-
-            {activeTab === 'payments' && (
-              <PaymentSummary alquiler={alquiler} />
-            )}
-          </div>
-        </div>
-
-        <aside className="detail-sidebar">
-          <div className="card-premium summary-card">
-            <h3>Resumen del Contrato</h3>
-            <div className="summary-list">
-              <div className="summary-item">
-                <label>Fin Previsto</label>
-                <span>{new Date(alquiler.fechaFinPrevista).toLocaleDateString()}</span>
-              </div>
-              <div className="summary-item">
-                <label>Días Totales</label>
-                <span>5 días</span>
-              </div>
-              <div className="summary-item highlight">
-                <label>Total Contrato</label>
-                <span>USD {Number(alquiler.subtotal).toLocaleString()}</span>
-              </div>
-            </div>
-            {alquiler.notas && (
-              <div className="notes-box">
-                <label>Observaciones:</label>
-                <p>{alquiler.notas}</p>
-              </div>
-            )}
-          </div>
-
-          <div className="card-premium status-flow">
-            <h3>Flujo Operativo</h3>
-            <div className="flow-steps">
-              <div className={`step ${alquiler.estado !== EstadoAlquiler.BORRADOR ? 'completed' : 'active'}`}>
-                <div className="dot"></div>
-                <label>Reserva / Borrador</label>
-              </div>
-              <div className={`step ${[EstadoAlquiler.ENTREGADO, EstadoAlquiler.DEVUELTO].includes(alquiler.estado) ? 'completed' : alquiler.estado === EstadoAlquiler.CONFIRMADO ? 'active' : 'pending'}`}>
-                <div className="dot"></div>
-                <label>Confirmación</label>
-              </div>
-              <div className={`step ${alquiler.estado === EstadoAlquiler.DEVUELTO ? 'completed' : alquiler.estado === EstadoAlquiler.ENTREGADO ? 'active' : 'pending'}`}>
-                <div className="dot"></div>
-                <label>Entrega en Obra</label>
-              </div>
-            </div>
-          </div>
-        </aside>
       </div>
 
-      <Drawer 
-        isOpen={!!selectedItem} 
-        onClose={() => setSelectedItem(null)} 
-        title={selectedItem?.mode === 'out' ? 'Check-out de Activo' : 'Check-in / Devolución'}
-      >
-        {selectedItem && (
-          <CheckInOutForm 
-            alquilerId={alquiler.id}
-            item={selectedItem.item}
-            mode={selectedItem.mode}
-            onCancel={() => setSelectedItem(null)}
-            onSuccess={() => setSelectedItem(null)}
-          />
+      <div className="detail-grid">
+        <div className="card-premium detail-card">
+          <h3>Información general</h3>
+          <div className="info-rows">
+            <div className="info-row"><span>Cliente</span><strong>{alquiler.cliente?.nombre}</strong></div>
+            <div className="info-row"><span>Inicio</span><strong>{new Date(alquiler.fechaInicio).toLocaleDateString('es-AR')}</strong></div>
+            <div className="info-row"><span>Vencimiento</span>
+              <strong style={{ color: new Date(alquiler.fechaFinPrevista) < new Date() && alquiler.estado === 'entregado' ? '#ef4444' : 'inherit' }}>
+                {new Date(alquiler.fechaFinPrevista).toLocaleDateString('es-AR')}
+              </strong>
+            </div>
+            {alquiler.fechaFinReal && <div className="info-row"><span>Devuelto</span><strong>{new Date(alquiler.fechaFinReal).toLocaleDateString('es-AR')}</strong></div>}
+            {alquiler.notas && <div className="info-row"><span>Notas</span><span>{alquiler.notas}</span></div>}
+          </div>
+        </div>
+
+        <div className="card-premium detail-card">
+          <h3>Equipos ({alquiler.items?.length ?? 0})</h3>
+          <ul className="items-list">
+            {alquiler.items?.map((item) => (
+              <li key={item.id} className="item-row">
+                <div>
+                  <strong>{item.activo?.codigoInterno ?? item.activoId.slice(0, 8)}</strong>
+                  <span className="item-modelo">{(item.activo as any)?.nombre ?? item.activo?.codigoInterno}</span>
+                </div>
+                <span className="item-precio">${Number(item.precioUnitario).toFixed(2)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="card-premium detail-card">
+          <h3>Resumen financiero</h3>
+          <div className="info-rows">
+            <div className="info-row"><span>Subtotal</span><strong>${Number(alquiler.subtotal).toFixed(2)}</strong></div>
+            <div className="info-row"><span>Penalidades</span>
+              <strong style={{ color: Number(alquiler.totalPenalidades) > 0 ? '#ef4444' : 'inherit' }}>
+                ${Number(alquiler.totalPenalidades).toFixed(2)}
+              </strong>
+            </div>
+            <div className="info-row"><span>Total pagado</span><strong style={{ color: '#22c55e' }}>${Number(alquiler.totalPagado).toFixed(2)}</strong></div>
+            <div className="info-row total-row">
+              <span>Saldo pendiente</span>
+              <strong>${(Number(alquiler.subtotal) + Number(alquiler.totalPenalidades) - Number(alquiler.totalPagado)).toFixed(2)}</strong>
+            </div>
+          </div>
+        </div>
+
+        {penalidades.length > 0 && (
+          <div className="card-premium detail-card">
+            <h3>Penalidades ({penalidades.length})</h3>
+            <ul className="items-list">
+              {penalidades.map((p) => (
+                <li key={p.id} className="item-row">
+                  <div>
+                    <strong>{(p as any).tipo?.toUpperCase()}</strong>
+                    <span className="item-modelo">{(p as any).descripcion ?? ''}</span>
+                  </div>
+                  <span className="item-precio" style={{ color: '#ef4444' }}>
+                    ${Number((p as any).montoOverride ?? (p as any).monto ?? 0).toFixed(2)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <Drawer isOpen={drawerMode === 'checkout'} onClose={() => setDrawerMode(null)} title="Check-Out — Entrega de equipos">
+        {alquiler.items && (
+          <CheckOutForm alquilerId={alquiler.id} items={alquiler.items}
+            onSuccess={() => { setDrawerMode(null); refetch(); }}
+            onCancel={() => setDrawerMode(null)} />
+        )}
+      </Drawer>
+
+      <Drawer isOpen={drawerMode === 'checkin'} onClose={() => setDrawerMode(null)} title="Check-In — Devolución de equipos">
+        {alquiler.items && (
+          <CheckInForm alquilerId={alquiler.id} items={alquiler.items}
+            onSuccess={() => { setDrawerMode(null); refetch(); }}
+            onCancel={() => setDrawerMode(null)} />
         )}
       </Drawer>
     </div>

@@ -1,14 +1,47 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/api/client';
-import { Alquiler, Cliente, Penalidad, EstadoAlquiler } from '../types';
+import api from '../../../api/client';
+import { Alquiler, Cliente, Penalidad } from '../types';
 
-export function useAlquileres() {
-  return useQuery<Alquiler[]>({
-    queryKey: ['alquileres'],
+export function useAlquileres(params: Record<string, string> = {}) {
+  return useQuery({
+    queryKey: ['alquileres', params],
     queryFn: async () => {
-      const { data } = await api.get('/alquileres');
+      const { data } = await api.get('/alquileres', { params });
       return data;
     },
+  });
+}
+
+export function useAlquileresVencidos() {
+  return useQuery<Alquiler[]>({
+    queryKey: ['alquileres', 'vencidos'],
+    queryFn: async () => {
+      const { data } = await api.get('/alquileres', {
+        params: { estado: 'entregado', limit: 100 },
+      });
+      const items: Alquiler[] = data?.data ?? data ?? [];
+      const ahora = new Date();
+      return items.filter((a) => new Date(a.fechaFinPrevista) < ahora);
+    },
+    staleTime: 60_000,
+  });
+}
+
+export function useProximasDevolucioness() {
+  return useQuery<Alquiler[]>({
+    queryKey: ['alquileres', 'proximas'],
+    queryFn: async () => {
+      const { data } = await api.get('/alquileres', {
+        params: { estado: 'entregado', limit: 100 },
+      });
+      const items: Alquiler[] = data?.data ?? data ?? [];
+      const ahora  = new Date();
+      const en48h  = new Date(ahora.getTime() + 48 * 60 * 60 * 1000);
+      return items
+        .filter((a) => { const f = new Date(a.fechaFinPrevista); return f >= ahora && f <= en48h; })
+        .sort((a, b) => new Date(a.fechaFinPrevista).getTime() - new Date(b.fechaFinPrevista).getTime());
+    },
+    staleTime: 60_000,
   });
 }
 
@@ -17,18 +50,39 @@ export function useAlquiler(id?: string) {
     queryKey: ['alquileres', id],
     queryFn: async () => {
       const { data } = await api.get(`/alquileres/${id}`);
-      return data;
+      return data?.data ?? data;
     },
     enabled: !!id,
   });
 }
 
-export function useClientes() {
+export function useClientes(busqueda?: string) {
   return useQuery<Cliente[]>({
-    queryKey: ['clientes'],
+    queryKey: ['clientes', busqueda],
     queryFn: async () => {
-      const { data } = await api.get('/clientes');
-      return data;
+      const { data } = await api.get('/clientes', {
+        params: busqueda ? { busqueda } : {},
+      });
+      return data?.data ?? data ?? [];
+    },
+  });
+}
+
+export function useCrearAlquiler() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (dto: {
+      sucursalId: string; clienteId: string;
+      fechaInicio: string; fechaFinPrevista: string;
+      items: { activoId: string; tarifaId?: string; precioUnitario: number; subtotal: number }[];
+      notas?: string;
+    }) => {
+      const { data } = await api.post('/alquileres', dto);
+      return data?.data ?? data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['alquileres'] });
+      queryClient.invalidateQueries({ queryKey: ['activos'] });
     },
   });
 }
@@ -38,7 +92,7 @@ export function useConfirmarAlquiler() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { data } = await api.patch(`/alquileres/${id}/confirmar`);
-      return data;
+      return data?.data ?? data;
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['alquileres'] });
@@ -50,9 +104,12 @@ export function useConfirmarAlquiler() {
 export function useCheckOut() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...dto }: { id: string; activoId: string; horometroInicial: number; combustibleInicial: number; observaciones?: string }) => {
+    mutationFn: async ({ id, ...dto }: {
+      id: string; activoId: string;
+      condicionSalida?: string; observaciones?: string;
+    }) => {
       const { data } = await api.post(`/alquileres/${id}/checkout`, dto);
-      return data;
+      return data?.data ?? data;
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['alquileres'] });
@@ -65,9 +122,14 @@ export function useCheckOut() {
 export function useCheckIn() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ alquilerId, ...dto }: { alquilerId: string; activoId: string; horometroFinal: number; combustibleFinal: number; observaciones?: string; danos?: any[] }) => {
+    mutationFn: async ({ alquilerId, ...dto }: {
+      alquilerId: string; activoId: string;
+      condicionRetorno?: string; observaciones?: string;
+      tieneDanios?: boolean; tieneRetraso?: boolean; horasRetraso?: number;
+      danos?: { descripcion: string; costoEstimado?: number }[];
+    }) => {
       const { data } = await api.post(`/devoluciones/alquiler/${alquilerId}/checkin`, dto);
-      return data;
+      return data?.data ?? data;
     },
     onSuccess: (_, { alquilerId }) => {
       queryClient.invalidateQueries({ queryKey: ['alquileres'] });
@@ -83,7 +145,7 @@ export function usePenalidades(alquilerId?: string) {
     queryKey: ['penalidades', alquilerId],
     queryFn: async () => {
       const { data } = await api.get(`/penalidades/alquiler/${alquilerId}`);
-      return data;
+      return data?.data ?? data ?? [];
     },
     enabled: !!alquilerId,
   });
@@ -92,9 +154,9 @@ export function usePenalidades(alquilerId?: string) {
 export function useOverridePenalidad() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...dto }: { id: string; montoFinal: number; motivo: string }) => {
+    mutationFn: async ({ id, ...dto }: { id: string; montoOverride: number; descripcion?: string }) => {
       const { data } = await api.patch(`/penalidades/${id}/override`, dto);
-      return data;
+      return data?.data ?? data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['penalidades'] });

@@ -1,100 +1,42 @@
-.dashboard-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
+.dashboard-wrapper { padding: 0; }
 
 .stats-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
-.kpi-card {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.75rem;
-  cursor: pointer;
-  position: relative;
-  transition: all var(--transition-normal);
-}
+.kpi-card { display: flex; align-items: center; gap: 16px; padding: 20px; cursor: pointer; transition: transform 0.15s; }
+.kpi-card:hover { transform: translateY(-2px); }
+.kpi-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kpi-details { flex: 1; }
+.kpi-label { display: block; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.kpi-value { font-size: 28px; font-weight: 700; color: var(--color-text-primary); }
+.arrow-hover { color: var(--color-text-secondary); flex-shrink: 0; }
 
-.kpi-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(251, 191, 36, 0.3);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-}
+.dashboard-grids { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+@media (max-width: 768px) { .dashboard-grids { grid-template-columns: 1fr; } }
 
-.kpi-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: var(--border-radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+.grid-item { padding: 20px; }
+.grid-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.grid-item-header h3 { font-size: 15px; font-weight: 600; color: var(--color-text-primary); display: flex; align-items: center; gap: 8px; margin: 0; }
 
-.kpi-details {
-  display: flex;
-  flex-direction: column;
-}
+.badge-count { background: var(--color-surface-hover, #334155); color: var(--color-text-secondary); font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+.badge-count--error { background: rgba(239,68,68,0.2); color: #ef4444; }
 
-.kpi-label {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
+.btn-link { background: none; border: none; color: var(--color-primary, #3b82f6); font-size: 13px; cursor: pointer; }
+.btn-link:hover { text-decoration: underline; }
 
-.kpi-value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #fff;
-  font-family: 'Outfit', sans-serif;
-  letter-spacing: -0.025em;
-}
+.devolucion-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.devolucion-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--color-surface-hover, #1e293b); border-radius: 8px; cursor: pointer; transition: background 0.12s; }
+.devolucion-item:hover { background: var(--color-surface-active, #334155); }
+.devolucion-item--alert { border-left: 3px solid #ef4444; }
+.devolucion-cliente { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+.devolucion-fecha { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--color-text-secondary); }
+.devolucion-fecha--error { color: #ef4444; }
 
-.arrow-hover {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  opacity: 0;
-  transform: translateX(-10px);
-  color: var(--color-primary);
-  transition: all var(--transition-normal);
-}
+.placeholder-state { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 32px 0; color: var(--color-text-secondary); font-size: 13px; text-align: center; }
 
-.kpi-card:hover .arrow-hover {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.dashboard-grids {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1.5rem;
-}
-
-.grid-item {
-  min-height: 320px;
-}
-
-.grid-item h3 {
-  font-size: 1.125rem;
-  margin-bottom: 1.5rem;
-  color: var(--color-text-accent);
-}
-
-.placeholder-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  height: calc(100% - 3rem);
-  color: var(--color-text-muted);
-  gap: 1.5rem;
-  text-align: center;
-  padding: 2rem;
-}
+.totales-card { display: flex; align-items: center; gap: 10px; padding: 14px 20px; font-size: 14px; color: var(--color-text-secondary); }
+.totales-card strong { color: var(--color-text-primary); }
