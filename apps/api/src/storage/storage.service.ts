@@ -39,13 +39,12 @@ export class StorageService {
     mimeType: string,
     carpeta: string,
   ): Promise<UploadResult> {
-    const ext  = mimeType.split('/')[1] ?? 'jpg';
-    const key  = `${carpeta}/${crypto.randomUUID()}.${ext}`;
+    const ext    = mimeType.split('/')[1] ?? 'jpg';
+    const key    = `${carpeta}/${crypto.randomUUID()}.${ext}`;
     const buffer = Buffer.from(base64.replace(/^data:[^;]+;base64,/, ''), 'base64');
 
     if (this.modo !== 'real' || !this.s3) {
-      // En modo mock guarda localmente
-      const dir = path.join(process.cwd(), 'uploads', carpeta);
+      const dir      = path.join(process.cwd(), 'uploads', carpeta);
       fs.mkdirSync(dir, { recursive: true });
       const filePath = path.join(dir, path.basename(key));
       fs.writeFileSync(filePath, buffer);
