@@ -1,9 +1,10 @@
 export enum MetodoPago {
-  EFECTIVO = 'efectivo',
+  EFECTIVO      = 'efectivo',
   TRANSFERENCIA = 'transferencia',
-  TARJETA = 'tarjeta',
-  CHEQUE = 'cheque',
-  OTRO = 'otro',
+  TARJETA       = 'tarjeta',
+  CHEQUE        = 'cheque',
+  MERCADOPAGO   = 'mercadopago',
+  OTRO          = 'otro',
 }
 
 export interface Pago {
@@ -14,9 +15,9 @@ export interface Pago {
   metodoPago: MetodoPago;
   referencia?: string;
   notas?: string;
-  usuario?: {
-    nombre: string;
-  };
+  mpStatus?: string;
+  usuario?: { nombre: string };
+  alquiler?: { id: string; cliente?: { nombre: string } };
 }
 
 export interface CreatePagoDto {
@@ -30,4 +31,6 @@ export interface CreatePagoDto {
 
 export interface FinanceStats {
   totalCobrado: number;
+  totalTransacciones: number;
+  ticketPromedio: number;
 }
