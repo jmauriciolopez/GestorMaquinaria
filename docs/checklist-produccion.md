@@ -12,23 +12,20 @@
 - [ ] Hashear logs — no loguear passwords ni tokens
 
 ### Base de datos
-- [x] Migraciones TypeORM creadas (3 migraciones: enums, tablas base, tablas operativas)
+- [x] Migraciones TypeORM creadas (4 migraciones)
 - [x] `data-source.ts` listo para CLI (`npm run migration:run`)
 - [ ] Hacer backup de la DB antes de cada deploy
 - [ ] Agregar índices adicionales según queries más frecuentes
-- [ ] Revisar constraints de unicidad por tenant
 
 ### Performance
 - [ ] Revisar queries N+1 en `findAll` con relaciones
 - [ ] Agregar caché en endpoints de catálogo (categorías, modelos, tarifas)
-- [ ] Paginar todos los listados en producción
 - [ ] Configurar `DB_LOGGING=false` en producción
 
 ### Infraestructura
-- [ ] Variables de entorno en servicio de secretos (AWS Secrets Manager, etc.)
-- [x] Health check endpoint — `GET /api/v1/health` y `GET /api/v1/health/ping`
+- [ ] Variables de entorno en servicio de secretos
+- [x] Health check endpoint
 - [ ] Agregar Sentry o similar para error tracking
-- [ ] Configurar logs centralizados (CloudWatch, Datadog, etc.)
 - [ ] CI/CD pipeline con tests antes de deploy
 
 ## Frontend Web
@@ -36,9 +33,9 @@
 - [ ] Configurar `VITE_API_URL` con URL de producción
 - [ ] Build optimizado (`npm run build`)
 - [ ] Configurar CDN para assets estáticos
-- [ ] Agregar error boundaries en componentes críticos
+- [x] Error boundaries en componentes críticos
 - [x] Dashboard con datos reales del backend
-- [x] Formulario completo de nuevo alquiler con selección de activos
+- [x] Formulario completo de nuevo alquiler
 - [x] Flujo de checkout/checkin desde la web
 - [x] Manejo de errores global (toast notifications)
 
@@ -46,16 +43,23 @@
 
 - [ ] Configurar `EXPO_PUBLIC_API_URL` con URL de producción
 - [ ] Build de producción con EAS Build
-- [x] AsyncStorage real (`@react-native-async-storage/async-storage`)
-- [x] Scanner QR con `expo-camera` + `expo-barcode-scanner`
-- [x] Carga de fotos con `expo-image-picker` (cámara + galería)
+- [x] AsyncStorage real
+- [x] Scanner QR con expo-camera
+- [x] Carga de fotos con expo-image-picker
 - [ ] Testear en dispositivo físico Android e iOS
 
-## Funcionalidades pendientes de completar
+## Funcionalidades completadas
 
-- [ ] Integración real de pagos (MercadoPago / Stripe)
-- [ ] Implementación real de email (SendGrid / SES)
-- [ ] Implementación real de WhatsApp (Twilio / Meta API)
-- [ ] Upload de fotos a S3 (actualmente se guardan URIs locales)
+- [x] MercadoPago — preferencias, webhook, acreditación automática
+- [x] Email real con SendGrid (activar con `NOTIFICACIONES_MODO=real`)
+- [x] WhatsApp real con Twilio (activar con `NOTIFICACIONES_MODO=real`)
+- [x] Upload de fotos — local en dev, S3 en producción (activar con `NOTIFICACIONES_MODO=real`)
+- [x] Error boundaries en frontend web
+
+## Pendientes Sprint 3+
+
 - [ ] Tests unitarios y e2e
 - [ ] Multi-sucursal completo con filtros por sucursal
+- [ ] Reportes exportables a PDF/Excel
+- [ ] Swagger / documentación de endpoints
+- [ ] Notificaciones push móvil (Expo Notifications)

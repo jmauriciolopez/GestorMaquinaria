@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThanOrEqual, IsNull } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Recordatorio, TipoRecordatorio, CanalNotificacion } from './recordatorio.entity';
-import { EmailProviderMock, WhatsAppProviderMock, SmsProviderMock } from './providers/notificacion.provider';
+import { EmailProvider, WhatsAppProvider, SmsProviderMock } from './providers/notificacion.provider';
 
 @Injectable()
 export class RecordatoriosService {
@@ -11,8 +11,8 @@ export class RecordatoriosService {
 
   constructor(
     @InjectRepository(Recordatorio) private readonly repo: Repository<Recordatorio>,
-    private readonly emailProvider: EmailProviderMock,
-    private readonly whatsappProvider: WhatsAppProviderMock,
+    private readonly emailProvider: EmailProvider,
+    private readonly whatsappProvider: WhatsAppProvider,
     private readonly smsProvider: SmsProviderMock,
   ) {}
 
@@ -20,7 +20,11 @@ export class RecordatoriosService {
     return this.repo.save(this.repo.create(data));
   }
 
-  async generarVencimientoAlquiler(alquilerId: string, destinatario: string, fechaVencimiento: Date, tenantId: string): Promise<void> {
+  async generarVencimientoAlquiler(
+    alquilerId: string, destinatario: string,
+    fechaVencimiento: Date, tenantId: string,
+  ): Promise<void> {
+    const fecha = fechaVencimiento.toLocaleDateString('es-AR');
     await this.crear({
       tipo: TipoRecordatorio.VENCIMIENTO_ALQUILER,
       canal: CanalNotificacion.EMAIL,
@@ -28,12 +32,14 @@ export class RecordatoriosService {
       referenciaId: alquilerId,
       referenciaTipo: 'alquiler',
       asunto: 'Recordatorio: alquiler próximo a vencer',
-      cuerpo: `Su alquiler vence el ${fechaVencimiento.toLocaleDateString('es-AR')}. Por favor coordine la devolución.`,
+      cuerpo: `Su alquiler vence el ${fecha}. Por favor coordine la devolución de los equipos.`,
       tenantId,
     });
   }
 
-  async generarDevolucionPendiente(alquilerId: string, destinatario: string, tenantId: string): Promise<void> {
+  async generarDevolucionPendiente(
+    alquilerId: string, destinatario: string, tenantId: string,
+  ): Promise<void> {
     await this.crear({
       tipo: TipoRecordatorio.DEVOLUCION_PENDIENTE,
       canal: CanalNotificacion.WHATSAPP,
@@ -41,14 +47,14 @@ export class RecordatoriosService {
       referenciaId: alquilerId,
       referenciaTipo: 'alquiler',
       asunto: 'Devolución pendiente',
-      cuerpo: `Tiene equipos pendientes de devolución. Por favor contáctenos.`,
+      cuerpo: 'Tiene equipos pendientes de devolución. Por favor contáctenos a la brevedad.',
       tenantId,
     });
   }
 
   private getProvider(canal: CanalNotificacion) {
     if (canal === CanalNotificacion.WHATSAPP) return this.whatsappProvider;
-    if (canal === CanalNotificacion.SMS) return this.smsProvider;
+    if (canal === CanalNotificacion.SMS)      return this.smsProvider;
     return this.emailProvider;
   }
 
@@ -59,13 +65,18 @@ export class RecordatoriosService {
       take: 20,
     });
     if (!pendientes.length) return;
-    this.logger.log(`Procesando ${pendientes.length} recordatorio(s) pendiente(s)`);
+    this.logger.log(`Procesando ${pendientes.length} recordatorio(s)`);
     for (const r of pendientes) {
       try {
         const provider = this.getProvider(r.canal);
-        await provider.enviar({ destinatario: r.destinatario, asunto: r.asunto, cuerpo: r.cuerpo ?? '' });
-        r.enviado = true;
-        r.fechaEnvio = new Date();
+        const ok = await provider.enviar({
+          destinatario: r.destinatario,
+          asunto: r.asunto,
+          cuerpo: r.cuerpo ?? '',
+        });
+        r.enviado   = ok;
+        r.fechaEnvio = ok ? new Date() : undefined;
+        if (!ok) r.error = 'El provider reportó fallo';
       } catch (err) {
         r.error = String(err);
       }

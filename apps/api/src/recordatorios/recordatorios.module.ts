@@ -3,12 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Recordatorio } from './recordatorio.entity';
 import { RecordatoriosService } from './recordatorios.service';
 import { RecordatoriosController } from './recordatorios.controller';
-import { EmailProviderMock, WhatsAppProviderMock, SmsProviderMock } from './providers/notificacion.provider';
+import { EmailProvider, WhatsAppProvider, SmsProviderMock } from './providers/notificacion.provider';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Recordatorio])],
   controllers: [RecordatoriosController],
-  providers: [RecordatoriosService, EmailProviderMock, WhatsAppProviderMock, SmsProviderMock],
-  exports: [RecordatoriosService],
+  providers: [RecordatoriosService, EmailProvider, WhatsAppProvider, SmsProviderMock],
+  exports: [RecordatoriosService, EmailProvider, WhatsAppProvider],
 })
 export class RecordatoriosModule {}

@@ -5,6 +5,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
+import { StorageModule } from './storage/storage.module';
 import { AuthModule } from './auth/auth.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { RolesModule } from './roles/roles.module';
@@ -29,12 +30,13 @@ import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import mercadopagoConfig from './config/mercadopago.config';
+import notificacionesConfig from './config/notificaciones.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig, mercadopagoConfig],
+      load: [appConfig, databaseConfig, jwtConfig, mercadopagoConfig, notificacionesConfig],
       envFilePath: '.env',
     }),
     ThrottlerModule.forRoot([
@@ -45,6 +47,7 @@ import mercadopagoConfig from './config/mercadopago.config';
     ScheduleModule.forRoot(),
     DatabaseModule,
     HealthModule,
+    StorageModule,
     AuthModule,
     UsuariosModule,
     RolesModule,
