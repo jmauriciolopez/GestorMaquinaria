@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { PagosService } from './pagos.service';
 import { CreatePagoDto } from './dto/pago.dto';
 import { GetUsuario, UsuarioActivo } from '../common/decorators/get-usuario.decorator';
@@ -16,9 +16,21 @@ export class PagosController {
     return this.service.registrar(dto, u.sub, u.tenantId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string, @GetUsuario() u: UsuarioActivo) {
-    return this.service.findOne(id, u.tenantId);
+  // Debe ir ANTES de :id para que Express no confunda 'dashboard' como un ID
+  @Get('dashboard')
+  @Roles('admin', 'operador')
+  getDashboard(@GetUsuario() u: UsuarioActivo) {
+    return this.service.dashboardStats(u.tenantId);
+  }
+
+  // Listado global de pagos del tenant (para página de Finanzas)
+  @Get()
+  @Roles('admin', 'operador')
+  findAll(
+    @GetUsuario() u: UsuarioActivo,
+    @Query('limit') limit?: string,
+  ) {
+    return this.service.findAll(u.tenantId, limit ? parseInt(limit, 10) : 100);
   }
 
   @Get('alquiler/:id')
@@ -26,9 +38,8 @@ export class PagosController {
     return this.service.findByAlquiler(id, u.tenantId);
   }
 
-  @Get('dashboard')
-  @Roles('admin')
-  getBoard(@GetUsuario() u: UsuarioActivo) {
-    return this.service.dashboardStats(u.tenantId);
+  @Get(':id')
+  findOne(@Param('id') id: string, @GetUsuario() u: UsuarioActivo) {
+    return this.service.findOne(id, u.tenantId);
   }
 }
