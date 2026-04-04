@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { PenalidadesService } from './penalidades.service';
 import {
   CreatePenalidadDto,
@@ -14,6 +14,16 @@ import { Roles } from '../common/decorators/roles.decorator';
 @UseGuards(RolesGuard)
 export class PenalidadesController {
   constructor(private readonly service: PenalidadesService) {}
+
+  // Listado global con relaciones — debe ir ANTES de :id
+  @Get()
+  @Roles('admin', 'operador')
+  findAll(
+    @GetUsuario() u: UsuarioActivo,
+    @Query('limit') limit?: string,
+  ) {
+    return this.service.findAll(u.tenantId, limit ? parseInt(limit, 10) : 200);
+  }
 
   @Get('alquiler/:alquilerId')
   findByAlquiler(@Param('alquilerId') alquilerId: string) {
