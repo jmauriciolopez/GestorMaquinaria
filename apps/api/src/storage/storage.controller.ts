@@ -26,7 +26,7 @@ export class StorageController {
   @Post('upload')
   async upload(@Body() dto: UploadDto, @GetUsuario() u: UsuarioActivo) {
     const carpeta = dto.carpeta ?? `tenant-${u.tenantId}`;
-    const urls = await this.storageService.uploadMultiple(dto.archivos, carpeta);
+    const urls    = await this.storageService.uploadMultiple(dto.archivos, carpeta);
     return { urls };
   }
 }
