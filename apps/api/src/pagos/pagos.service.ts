@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Pago } from './pago.entity';
@@ -8,7 +8,7 @@ import { CreatePagoDto } from './dto/pago.dto';
 @Injectable()
 export class PagosService {
   constructor(
-    @InjectRepository(Pago) private readonly repo: Repository<Pago>,
+    @InjectRepository(Pago)     private readonly repo: Repository<Pago>,
     @InjectRepository(Alquiler) private readonly alquilerRepo: Repository<Alquiler>,
   ) {}
 
@@ -17,19 +17,26 @@ export class PagosService {
     if (!alquiler) throw new NotFoundException('Alquiler no encontrado');
 
     const pago = await this.repo.save(
-      this.repo.create({ 
-        ...dto, 
-        usuarioId, 
-        tenantId,
-        fecha: new Date(dto.fecha)
-      }),
+      this.repo.create({ ...dto, usuarioId, tenantId, fecha: new Date(dto.fecha) }),
     );
 
-    // Actualizar el total pagado en el alquiler
     alquiler.totalPagado = Number(alquiler.totalPagado) + Number(dto.monto);
     await this.alquilerRepo.save(alquiler);
 
     return this.findOne(pago.id, tenantId);
+  }
+
+  // Listado global de pagos del tenant — para la página de Finanzas
+  async findAll(tenantId: string, limit = 100): Promise<Pago[]> {
+    return this.repo
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.usuario',  'usuario')
+      .leftJoinAndSelect('p.alquiler', 'alquiler')
+      .leftJoinAndSelect('alquiler.cliente', 'cliente')
+      .where('p.tenant_id = :tenantId', { tenantId })
+      .orderBy('p.fecha', 'DESC')
+      .limit(limit)
+      .getMany();
   }
 
   async findByAlquiler(alquilerId: string, tenantId: string): Promise<Pago[]> {
@@ -47,9 +54,18 @@ export class PagosService {
   }
 
   async dashboardStats(tenantId: string) {
-    const totalCobrado = await this.repo.sum('monto', { tenantId });
+    const result = await this.repo
+      .createQueryBuilder('p')
+      .select('SUM(p.monto)',  'totalCobrado')
+      .addSelect('COUNT(*)',   'totalTransacciones')
+      .addSelect('AVG(p.monto)', 'ticketPromedio')
+      .where('p.tenant_id = :tenantId', { tenantId })
+      .getRawOne();
+
     return {
-      totalCobrado: Number(totalCobrado || 0),
+      totalCobrado:        Number(result?.totalCobrado      || 0),
+      totalTransacciones:  Number(result?.totalTransacciones || 0),
+      ticketPromedio:      Number(result?.ticketPromedio     || 0),
     };
   }
 }
