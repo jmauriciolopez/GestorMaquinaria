@@ -173,3 +173,70 @@ GET /api/v1/health/ping  → Ping rápido
 - [`docs/roadmap-tecnico.md`](docs/roadmap-tecnico.md) — sprints planificados
 
 **Sprint 2 pendiente:** email real (SendGrid), WhatsApp (Twilio), notificaciones push, tests unitarios.
+
+## ⚠️ Checklist crítico antes de producción
+
+Estas configuraciones son obligatorias antes de exponer el sistema a usuarios reales:
+
+### 1. Secretos y credenciales
+
+```bash
+# Generar JWT_SECRET seguro
+openssl rand -base64 64
+```
+
+Reemplazar en `apps/api/.env`:
+```env
+JWT_SECRET=<valor generado arriba>
+```
+
+### 2. CORS — restringir al dominio real
+
+En `apps/api/.env`:
+```env
+CORS_ORIGIN=https://tu-dominio-frontend.com
+```
+
+### 3. Logging de DB — desactivar en producción
+
+```env
+NODE_ENV=production
+DB_LOGGING=false
+```
+
+Con `NODE_ENV=production` también se deshabilita `synchronize: true` y se activa `migrationsRun: true` automáticamente.
+
+### 4. Variables de entorno del frontend
+
+En `apps/web/.env.production`:
+```env
+VITE_API_URL=https://tu-api.com
+```
+
+En `apps/mobile/.env`:
+```env
+EXPO_PUBLIC_API_URL=https://tu-api.com
+```
+
+### 5. Variables de entorno en servidor
+
+No usar archivos `.env` en producción — usar el gestor de secretos de tu plataforma:
+- **Railway / Render**: Variables de entorno en el dashboard
+- **AWS**: Secrets Manager o Parameter Store
+- **Fly.io**: `fly secrets set KEY=value`
+
+### 6. MercadoPago — pasar a producción
+
+En `AlquilerDetail.tsx`, cambiar:
+```ts
+// Sandbox (testing)
+const url = result.sandboxInitPoint
+
+// Producción
+const url = result.initPoint
+```
+
+Y reemplazar credenciales en `.env`:
+```env
+MP_ACCESS_TOKEN=APP_USR-xxxxxxxxxxxx   # token de producción
+```
