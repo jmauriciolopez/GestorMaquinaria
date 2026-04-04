@@ -1,14 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
 import api from '../api/client';
 
-interface UploadResult {
-  urls: string[];
-}
-
 export function useUploadFotos() {
   return useMutation({
     mutationFn: async (archivos: { base64: string; mimeType: string }[]): Promise<string[]> => {
-      const { data } = await api.post<UploadResult>('/storage/upload', { archivos });
+      const { data } = await api.post('/storage/upload', { archivos });
       return (data as any)?.data?.urls ?? (data as any)?.urls ?? [];
     },
   });
