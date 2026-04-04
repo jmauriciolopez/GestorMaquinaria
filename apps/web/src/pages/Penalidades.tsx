@@ -8,7 +8,6 @@ import Badge, { BadgeVariant } from '../components/ui/Badge';
 import { useToast } from '../context/ToastContext';
 import './Penalidades.css';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 type TipoPen   = 'retraso' | 'danio' | 'faltante' | 'horas_extra' | 'otro';
 type EstadoPen = 'pendiente' | 'aprobada' | 'anulada' | 'pagada';
 
@@ -24,13 +23,12 @@ interface Penalidad {
   alquiler?: { id: string; cliente?: { nombre: string } };
 }
 
-// ─── Config ───────────────────────────────────────────────────────────────────
 const TIPO_CFG: Record<TipoPen, { label: string; variant: BadgeVariant }> = {
-  retraso:     { label: 'Retraso',     variant: 'warning'   },
-  danio:       { label: 'Daño',        variant: 'error'     },
-  faltante:    { label: 'Faltante',    variant: 'error'     },
-  horas_extra: { label: 'Hs. Extra',   variant: 'info'      },
-  otro:        { label: 'Otro',        variant: 'secondary' },
+  retraso:     { label: 'Retraso',   variant: 'warning'   },
+  danio:       { label: 'Daño',      variant: 'error'     },
+  faltante:    { label: 'Faltante',  variant: 'error'     },
+  horas_extra: { label: 'Hs. Extra', variant: 'info'      },
+  otro:        { label: 'Otro',      variant: 'secondary' },
 };
 
 const ESTADO_CFG: Record<EstadoPen, { label: string; variant: BadgeVariant }> = {
@@ -40,39 +38,31 @@ const ESTADO_CFG: Record<EstadoPen, { label: string; variant: BadgeVariant }> = 
   pagada:    { label: 'Pagada',    variant: 'info'      },
 };
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// Un solo fetch global — sin N+1
 const usePenalidadesGlobal = () => useQuery<Penalidad[]>({
   queryKey: ['penalidades', 'global'],
   queryFn: async () => {
-    // Obtenemos alquileres y sus penalidades
-    const { data: alqData } = await api.get('/alquileres', { params: { limit: 100 } });
-    const alquileres = alqData?.data ?? alqData ?? [];
-    const result: Penalidad[] = [];
-    for (const a of alquileres.slice(0, 30)) {
-      try {
-        const { data } = await api.get(`/penalidades/alquiler/${a.id}`);
-        const items = data?.data ?? data ?? [];
-        items.forEach((p: Penalidad) => result.push({ ...p, alquiler: a }));
-      } catch { /* skip */ }
-    }
-    return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const { data } = await api.get('/penalidades', { params: { limit: 200 } });
+    return data?.data ?? data ?? [];
   },
   staleTime: 60_000,
 });
 
-// ─── Main page ────────────────────────────────────────────────────────────────
 const Penalidades = () => {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { success, error } = useToast();
   const { data: penalidades = [], isLoading } = usePenalidadesGlobal();
   const [filtroEstado, setFiltroEstado] = useState('');
-  const [filtroTipo, setFiltroTipo] = useState('');
+  const [filtroTipo,   setFiltroTipo]   = useState('');
 
   const cambiarEstado = useMutation({
     mutationFn: async ({ id, estado }: { id: string; estado: EstadoPen }) =>
       api.patch(`/penalidades/${id}/estado`, { estado }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['penalidades'] }); success('Estado actualizado'); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['penalidades'] });
+      success('Estado actualizado');
+    },
     onError: () => error('Error al actualizar'),
   });
 
@@ -84,25 +74,27 @@ const Penalidades = () => {
     .filter(p => p.estado === 'pendiente' || p.estado === 'aprobada')
     .reduce((acc, p) => acc + Number(p.montoOverride ?? p.monto), 0);
 
+  const fmt = (n: number) => n.toLocaleString('es-AR', { minimumFractionDigits: 2 });
+
   const columns = [
     { header: 'Fecha',    accessor: (p: Penalidad) => new Date(p.createdAt).toLocaleDateString('es-AR') },
     { header: 'Cliente',  accessor: (p: Penalidad) => <strong>{p.alquiler?.cliente?.nombre ?? '—'}</strong> },
     { header: 'Alquiler', accessor: (p: Penalidad) => (
       <button className="link-btn" onClick={e => { e.stopPropagation(); navigate(`/alquileres/${p.alquilerId}`); }}>
-        #{p.alquilerId.slice(0,8)}
+        #{p.alquilerId.slice(0, 8)}
       </button>
     )},
-    { header: 'Tipo',     accessor: (p: Penalidad) => {
+    { header: 'Tipo',  accessor: (p: Penalidad) => {
       const cfg = TIPO_CFG[p.tipo] ?? { label: p.tipo, variant: 'secondary' as BadgeVariant };
       return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
     }},
-    { header: 'Estado',   accessor: (p: Penalidad) => {
+    { header: 'Estado', accessor: (p: Penalidad) => {
       const cfg = ESTADO_CFG[p.estado] ?? { label: p.estado, variant: 'secondary' as BadgeVariant };
       return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
     }},
-    { header: 'Monto',    accessor: (p: Penalidad) => (
+    { header: 'Monto', accessor: (p: Penalidad) => (
       <strong style={{ color: 'var(--color-error)' }}>
-        USD {Number(p.montoOverride ?? p.monto).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+        ${fmt(Number(p.montoOverride ?? p.monto))}
       </strong>
     )},
     { header: 'Acciones', accessor: (p: Penalidad) => (
@@ -136,7 +128,6 @@ const Penalidades = () => {
         </div>
       </header>
 
-      {/* Summary */}
       <div className="pen-summary-grid">
         <div className="pen-summary-card pen-card-error">
           <AlertTriangle size={20} />
@@ -148,7 +139,7 @@ const Penalidades = () => {
         <div className="pen-summary-card pen-card-warning">
           <AlertTriangle size={20} />
           <div>
-            <span className="pen-card-value">USD {totalPendiente.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+            <span className="pen-card-value">${fmt(totalPendiente)}</span>
             <span className="pen-card-label">Monto a cobrar</span>
           </div>
         </div>
