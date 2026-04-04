@@ -1,50 +1,63 @@
 # Roadmap Técnico — Maquinaria SaaS
 
-## Sprint 1 — Producción mínima viable (próximas 2 semanas)
+## Sprint 1 — ✅ Completado
 
 ### Backend
-- [ ] Migraciones TypeORM (reemplazar `synchronize: true`)
-- [ ] Health check endpoint
-- [ ] Rate limiting con `@nestjs/throttler`
-- [ ] Helmet para seguridad de headers
-- [ ] Tests unitarios de servicios críticos (alquileres, penalidades)
+- [x] Migraciones TypeORM (synchronize: false en producción)
+- [x] Health check endpoint
+- [x] Rate limiting con @nestjs/throttler
+- [x] Helmet para seguridad de headers
 
 ### Frontend
-- [ ] Conectar Dashboard con datos reales del backend
-- [ ] Formulario completo de nuevo alquiler con selección de activos
-- [ ] Flujo de checkout/checkin desde la web
-- [ ] Manejo de errores global (toast notifications)
+- [x] Dashboard con datos reales del backend
+- [x] Formulario completo de nuevo alquiler (wizard 3 pasos)
+- [x] Flujo de checkout/checkin desde la web
+- [x] Toast notifications globales
+- [x] Error boundaries en componentes críticos
 
 ### Mobile
-- [ ] Integrar AsyncStorage real
-- [ ] Scanner QR con expo-camera
-- [ ] Upload de fotos en check-out/check-in
+- [x] AsyncStorage real
+- [x] Scanner QR con expo-camera
+- [x] Upload de fotos con expo-image-picker
 
-## Sprint 2 — Pagos y notificaciones reales
+## Sprint 2 — ✅ Completado
 
-- [ ] Integrar MercadoPago para cobros de alquileres y penalidades
-- [ ] Email real con SendGrid (reemplazar mock)
-- [ ] WhatsApp con Twilio o Meta Cloud API (reemplazar mock)
-- [ ] Notificaciones push con Expo Notifications
+- [x] MercadoPago — preferencias, webhook, acreditación automática
+- [x] Email real con SendGrid (modo real/mock configurable)
+- [x] WhatsApp con Twilio (modo real/mock configurable)
+- [x] Upload de fotos a S3 (local en dev, S3 en producción)
+- [x] StorageService global con endpoint POST /storage/upload
 
-## Sprint 3 — Multi-sucursal y reportes
+## Sprint 3 — Multi-sucursal, reportes y tests
 
+### Prioridad alta
+- [ ] Tests unitarios — alquileres, penalidades, MercadoPago service
+- [ ] Tests e2e del flujo completo alquiler → checkout → checkin
+- [ ] Documentación de endpoints con Swagger (@nestjs/swagger)
+- [ ] Notificaciones push móvil con Expo Notifications
+
+### Prioridad media
 - [ ] Panel de administración multi-sucursal
 - [ ] Reportes exportables a PDF/Excel
 - [ ] Dashboard con métricas por sucursal
 - [ ] Transferencia de activos entre sucursales
+- [ ] Caché en endpoints de catálogo (categorías, modelos, tarifas)
+
+### Prioridad baja
+- [ ] CI/CD pipeline con tests automáticos antes de deploy
+- [ ] Sentry para error tracking
+- [ ] Logs centralizados (CloudWatch, Datadog)
 
 ## Sprint 4 — Escala y telemetría
 
-- [ ] Preparar infraestructura para telemetría IoT/GPS
-- [ ] API para integración con lectores QR físicos
+- [ ] Infraestructura para telemetría IoT/GPS
+- [ ] API para integración con lectores QR físicos de depósito
 - [ ] Webhooks para eventos críticos (vencimientos, daños)
-- [ ] Onboarding de nuevos tenants automatizado
+- [ ] Onboarding automatizado de nuevos tenants
 
 ## Deuda técnica identificada
 
 - Queries N+1 en listados con relaciones — agregar eager loading selectivo
-- `BaseEntity` heredado sin `deletedAt` en algunas entidades — revisar entidad por entidad
 - Tipos compartidos entre web y api — migrar a `packages/shared-types`
-- Tests e2e del flujo completo de alquiler
-- Documentación de endpoints con Swagger (`@nestjs/swagger`)
+- `DB_LOGGING=false` a configurar en producción via env
+- Swagger para documentar todos los endpoints públicos
