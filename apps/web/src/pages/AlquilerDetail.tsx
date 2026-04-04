@@ -1,46 +1,76 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
-import { useAlquiler, useConfirmarAlquiler, usePenalidades } from '../features/alquileres/hooks/useAlquileresData';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, CheckCircle, CreditCard } from 'lucide-react';
+import {
+  useAlquiler, useConfirmarAlquiler, usePenalidades,
+} from '../features/alquileres/hooks/useAlquileresData';
+import { usePagarConMP } from '../features/alquileres/hooks/useMercadoPago';
 import { CheckOutForm } from '../features/alquileres/components/CheckOutForm';
 import { CheckInForm } from '../features/alquileres/components/CheckInForm';
-import PaymentSummary from '../features/alquileres/components/PaymentSummary';
-import { EstadoAlquiler } from '../features/alquileres/types';
 import Badge, { BadgeVariant } from '../components/ui/Badge';
 import Drawer from '../components/ui/Drawer';
 import { useToast } from '../context/ToastContext';
 import './AlquilerDetail.css';
 
-const estadoBadge: Record<EstadoAlquiler, { label: string; variant: BadgeVariant }> = {
-  [EstadoAlquiler.BORRADOR]:         { label: 'Borrador',     variant: 'secondary' },
-  [EstadoAlquiler.CONFIRMADO]:       { label: 'Confirmado',   variant: 'primary'   },
-  [EstadoAlquiler.ENTREGADO]:        { label: 'Entregado',    variant: 'info'      },
-  [EstadoAlquiler.DEVUELTO_PARCIAL]: { label: 'Dev. Parcial', variant: 'warning'   },
-  [EstadoAlquiler.DEVUELTO]:         { label: 'Devuelto',     variant: 'success'   },
-  [EstadoAlquiler.CANCELADO]:        { label: 'Cancelado',    variant: 'error'     },
-  [EstadoAlquiler.FINALIZADO]:       { label: 'Finalizado',   variant: 'success'   },
+const estadoBadge: Record<string, { label: string; variant: BadgeVariant }> = {
+  borrador:         { label: 'Borrador',     variant: 'secondary' },
+  confirmado:       { label: 'Confirmado',   variant: 'primary'   },
+  entregado:        { label: 'Entregado',    variant: 'info'      },
+  devuelto_parcial: { label: 'Dev. Parcial', variant: 'warning'   },
+  devuelto:         { label: 'Devuelto',     variant: 'success'   },
+  cancelado:        { label: 'Cancelado',    variant: 'error'     },
+  vencido:          { label: 'Vencido',      variant: 'error'     },
 };
 
 const AlquilerDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { data: alquiler, isLoading, refetch } = useAlquiler(id);
   const { data: penalidades = [] } = usePenalidades(id);
-  const confirmar = useConfirmarAlquiler();
-  const { success, error } = useToast();
+  const confirmar    = useConfirmarAlquiler();
+  const pagarConMP   = usePagarConMP();
+  const { success, error, info } = useToast();
   const [drawerMode, setDrawerMode] = useState<null | 'checkout' | 'checkin'>(null);
+
+  // Manejar redirect de MercadoPago
+  useEffect(() => {
+    const mp = searchParams.get('mp');
+    if (mp === 'success') { success('¡Pago aprobado por MercadoPago!'); refetch(); }
+    if (mp === 'failure') { error('El pago fue rechazado. Intentá de nuevo.'); }
+    if (mp === 'pending') { info('Pago pendiente de acreditación. Te notificaremos.'); }
+    if (mp) navigate(`/alquileres/${id}`, { replace: true });
+  }, []);
 
   if (isLoading) return <div className="detail-loading">Cargando alquiler...</div>;
   if (!alquiler) return <div className="detail-loading">Alquiler no encontrado.</div>;
 
-  const cfg = estadoBadge[alquiler.estado] ?? { label: alquiler.estado, variant: 'secondary' as BadgeVariant };
-  const puedeConfirmar = alquiler.estado === EstadoAlquiler.BORRADOR;
-  const puedeCheckOut  = alquiler.estado === EstadoAlquiler.CONFIRMADO;
-  const puedeCheckIn   = alquiler.estado === EstadoAlquiler.ENTREGADO || alquiler.estado === EstadoAlquiler.DEVUELTO_PARCIAL;
+  const cfg            = estadoBadge[alquiler.estado] ?? { label: alquiler.estado, variant: 'secondary' as BadgeVariant };
+  const puedeConfirmar = alquiler.estado === 'borrador';
+  const puedeCheckOut  = alquiler.estado === 'confirmado';
+  const puedeCheckIn   = alquiler.estado === 'entregado' || alquiler.estado === 'devuelto_parcial';
+  const saldoPendiente = Number(alquiler.subtotal) + Number(alquiler.totalPenalidades) - Number(alquiler.totalPagado);
+  const puedePagar     = saldoPendiente > 0;
 
   const handleConfirmar = async () => {
     try { await confirmar.mutateAsync(id!); success('Alquiler confirmado'); refetch(); }
     catch { error('No se pudo confirmar el alquiler'); }
+  };
+
+  const handlePagarMP = async () => {
+    try {
+      const result = await pagarConMP.mutateAsync({
+        alquilerId:  id!,
+        monto:       saldoPendiente,
+        descripcion: `Alquiler #${id!.slice(0, 8)} — ${alquiler.cliente?.nombre ?? ''}`,
+      });
+      // En producción usar result.initPoint, en sandbox usar result.sandboxInitPoint
+      const url = result.sandboxInitPoint || result.initPoint;
+      if (url) window.open(url, '_blank');
+      else error('No se pudo obtener el link de pago');
+    } catch {
+      error('Error al conectar con MercadoPago');
+    }
   };
 
   return (
@@ -69,6 +99,12 @@ const AlquilerDetail = () => {
               📥 Check-In
             </button>
           )}
+          {puedePagar && (
+            <button className="btn-mp" onClick={handlePagarMP} disabled={pagarConMP.isPending}>
+              <CreditCard size={16} />
+              {pagarConMP.isPending ? 'Generando link...' : `Pagar $${saldoPendiente.toFixed(2)} con MP`}
+            </button>
+          )}
         </div>
       </div>
 
@@ -79,11 +115,13 @@ const AlquilerDetail = () => {
             <div className="info-row"><span>Cliente</span><strong>{alquiler.cliente?.nombre}</strong></div>
             <div className="info-row"><span>Inicio</span><strong>{new Date(alquiler.fechaInicio).toLocaleDateString('es-AR')}</strong></div>
             <div className="info-row"><span>Vencimiento</span>
-              <strong style={{ color: new Date(alquiler.fechaFinPrevista) < new Date() && (alquiler.estado === EstadoAlquiler.ENTREGADO || alquiler.estado === EstadoAlquiler.DEVUELTO_PARCIAL) ? '#ef4444' : 'inherit' }}>
+              <strong style={{ color: new Date(alquiler.fechaFinPrevista) < new Date() && alquiler.estado === 'entregado' ? '#ef4444' : 'inherit' }}>
                 {new Date(alquiler.fechaFinPrevista).toLocaleDateString('es-AR')}
               </strong>
             </div>
-            {alquiler.fechaFinReal && <div className="info-row"><span>Devuelto</span><strong>{new Date(alquiler.fechaFinReal).toLocaleDateString('es-AR')}</strong></div>}
+            {alquiler.fechaFinReal && (
+              <div className="info-row"><span>Devuelto</span><strong>{new Date(alquiler.fechaFinReal).toLocaleDateString('es-AR')}</strong></div>
+            )}
             {alquiler.notas && <div className="info-row"><span>Notas</span><span>{alquiler.notas}</span></div>}
           </div>
         </div>
@@ -95,7 +133,7 @@ const AlquilerDetail = () => {
               <li key={item.id} className="item-row">
                 <div>
                   <strong>{item.activo?.codigoInterno ?? item.activoId.slice(0, 8)}</strong>
-                  <span className="item-modelo">{item.activo?.nombre ?? item.activo?.codigoInterno}</span>
+                  <span className="item-modelo">{(item.activo as any)?.nombre}</span>
                 </div>
                 <span className="item-precio">${Number(item.precioUnitario).toFixed(2)}</span>
               </li>
@@ -112,12 +150,22 @@ const AlquilerDetail = () => {
                 ${Number(alquiler.totalPenalidades).toFixed(2)}
               </strong>
             </div>
-            <div className="info-row"><span>Total pagado</span><strong style={{ color: '#22c55e' }}>${Number(alquiler.totalPagado).toFixed(2)}</strong></div>
+            <div className="info-row"><span>Total pagado</span>
+              <strong style={{ color: '#22c55e' }}>${Number(alquiler.totalPagado).toFixed(2)}</strong>
+            </div>
             <div className="info-row total-row">
               <span>Saldo pendiente</span>
-              <strong>${(Number(alquiler.subtotal) + Number(alquiler.totalPenalidades) - Number(alquiler.totalPagado)).toFixed(2)}</strong>
+              <strong style={{ color: saldoPendiente > 0 ? '#f59e0b' : '#22c55e' }}>
+                ${saldoPendiente.toFixed(2)}
+              </strong>
             </div>
           </div>
+          {puedePagar && (
+            <button className="btn-mp btn-mp--block" onClick={handlePagarMP} disabled={pagarConMP.isPending}>
+              <CreditCard size={16} />
+              {pagarConMP.isPending ? 'Generando link...' : 'Pagar con MercadoPago'}
+            </button>
+          )}
         </div>
 
         {penalidades.length > 0 && (
@@ -139,9 +187,6 @@ const AlquilerDetail = () => {
           </div>
         )}
       </div>
-
-      {/* Pagos — historial + registrar cobro */}
-      <PaymentSummary alquiler={alquiler} />
 
       <Drawer isOpen={drawerMode === 'checkout'} onClose={() => setDrawerMode(null)} title="Check-Out — Entrega de equipos">
         {alquiler.items && (

@@ -23,22 +23,24 @@ import { MantenimientosModule } from './mantenimientos/mantenimientos.module';
 import { RecordatoriosModule } from './recordatorios/recordatorios.module';
 import { PagosModule } from './pagos/pagos.module';
 import { ReportsModule } from './reports/reports.module';
+import { MercadoPagoModule } from './mercadopago/mercadopago.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
+import mercadopagoConfig from './config/mercadopago.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig],
+      load: [appConfig, databaseConfig, jwtConfig, mercadopagoConfig],
       envFilePath: '.env',
     }),
     ThrottlerModule.forRoot([
-      { name: 'short', ttl: 1000,  limit: 10  },  // 10 req/seg
-      { name: 'medium', ttl: 60000, limit: 200 },  // 200 req/min
-      { name: 'long',  ttl: 3600000, limit: 2000 },// 2000 req/hora
+      { name: 'short',  ttl: 1000,    limit: 10   },
+      { name: 'medium', ttl: 60000,   limit: 200  },
+      { name: 'long',   ttl: 3600000, limit: 2000 },
     ]),
     ScheduleModule.forRoot(),
     DatabaseModule,
@@ -61,6 +63,7 @@ import jwtConfig from './config/jwt.config';
     RecordatoriosModule,
     PagosModule,
     ReportsModule,
+    MercadoPagoModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
