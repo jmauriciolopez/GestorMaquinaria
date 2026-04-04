@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Penalidad } from './penalidad.entity';
@@ -16,7 +16,6 @@ export class PenalidadesService {
     @InjectRepository(Penalidad) private readonly repo: Repository<Penalidad>,
   ) {}
 
-  // Calcula monto de penalidad por retraso: 1.5x precio/hora por cada hora vencida
   calcularMontoRetraso(horasRetraso: number, precioPorHora: number): number {
     return Math.ceil(horasRetraso) * precioPorHora * 1.5;
   }
@@ -34,6 +33,18 @@ export class PenalidadesService {
 
   async create(dto: CreatePenalidadDto, tenantId: string): Promise<Penalidad> {
     return this.repo.save(this.repo.create({ ...dto, tenantId }));
+  }
+
+  // Listado global con relaciones — para la página de Penalidades (sin N+1)
+  async findAll(tenantId: string, limit = 200): Promise<Penalidad[]> {
+    return this.repo
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.alquiler', 'alquiler')
+      .leftJoinAndSelect('alquiler.cliente', 'cliente')
+      .where('p.tenant_id = :tenantId', { tenantId })
+      .orderBy('p.created_at', 'DESC')
+      .limit(limit)
+      .getMany();
   }
 
   async findByAlquiler(alquilerId: string): Promise<Penalidad[]> {
