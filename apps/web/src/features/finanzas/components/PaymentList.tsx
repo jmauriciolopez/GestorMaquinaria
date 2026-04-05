@@ -1,12 +1,11 @@
 import React from 'react';
-import { 
-  History, 
-  User, 
-  Calendar, 
-  CreditCard, 
+import {
+  History,
+  User,
+  Calendar,
+  CreditCard,
   Hash,
-  ArrowRight,
-  Download
+  Download,
 } from 'lucide-react';
 import { useReports } from '../../../hooks/useReports';
 import { usePagosAlquiler } from '../hooks/usePagosData';
@@ -18,15 +17,16 @@ interface Props {
   alquilerId: string;
 }
 
-const getMetodoLabel = (metodo: MetodoPago) => {
+const getMetodoLabel = (metodo: MetodoPago): string => {
   const map: Record<MetodoPago, string> = {
-    [MetodoPago.EFECTIVO]: 'Efectivo',
+    [MetodoPago.EFECTIVO]:      'Efectivo',
     [MetodoPago.TRANSFERENCIA]: 'Transferencia',
-    [MetodoPago.TARJETA]: 'Tarjeta de Cred./Deb.',
-    [MetodoPago.CHEQUE]: 'Cheque',
-    [MetodoPago.OTRO]: 'Otro',
+    [MetodoPago.TARJETA]:       'Tarjeta de Cred./Deb.',
+    [MetodoPago.CHEQUE]:        'Cheque',
+    [MetodoPago.MERCADOPAGO]:   'MercadoPago',
+    [MetodoPago.OTRO]:          'Otro',
   };
-  return map[metodo] || metodo;
+  return map[metodo] ?? metodo;
 };
 
 const PaymentList: React.FC<Props> = ({ alquilerId }) => {
@@ -51,8 +51,8 @@ const PaymentList: React.FC<Props> = ({ alquilerId }) => {
                 <span>{new Date(p.fecha).toLocaleDateString()}</span>
               </div>
               <div className="tx-actions-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <button 
-                  className="btn-icon-sm" 
+                <button
+                  className="btn-icon-sm"
                   onClick={() => downloadReceipt(p.id)}
                   title="Descargar Recibo PDF"
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
@@ -78,7 +78,7 @@ const PaymentList: React.FC<Props> = ({ alquilerId }) => {
               )}
               <div className="detail-item">
                 <User size={12} />
-                <span>Por: {p.usuario?.nombre || 'Sist.'}</span>
+                <span>Por: {p.usuario?.nombre ?? 'Sist.'}</span>
               </div>
             </div>
 
