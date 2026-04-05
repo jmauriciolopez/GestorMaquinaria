@@ -3,6 +3,7 @@ import {
   IsNumber, IsDateString, MaxLength,
 } from 'class-validator';
 import { EstadoActivo } from '../estado-activo.enum';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 
 export class CreateActivoDto {
   @IsUUID()
@@ -58,7 +59,7 @@ export class UpdateActivoDto {
   @IsOptional() @IsString() notas?: string;
 }
 
-export class FiltroActivoDto {
+export class FiltroActivoDto extends PaginationDto {
   @IsOptional() @IsEnum(EstadoActivo) estado?: EstadoActivo;
   @IsOptional() @IsUUID() sucursalId?: string;
   @IsOptional() @IsUUID() modeloId?: string;
