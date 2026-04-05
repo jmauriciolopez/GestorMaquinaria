@@ -10,6 +10,7 @@ import { EstadoActivo } from '../activos/estado-activo.enum';
 import { TipoMovimiento } from '../movimientos-activo/tipo-movimiento.enum';
 import { ActivosService } from '../activos/activos.service';
 import { MovimientosActivoService } from '../movimientos-activo/movimientos-activo.service';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 
 @Injectable()
 export class AlquileresService {
@@ -20,6 +21,7 @@ export class AlquileresService {
     @InjectRepository(DevolucionActivo) private readonly devolucionRepo: Repository<DevolucionActivo>,
     private readonly activosService: ActivosService,
     private readonly movimientosService: MovimientosActivoService,
+    private readonly notificaciones: NotificacionesService,
   ) {}
 
   async create(dto: CreateAlquilerDto, usuarioId: string, tenantId: string): Promise<Alquiler> {
@@ -32,6 +34,8 @@ export class AlquileresService {
         this.itemRepo.create({ ...item, alquilerId: alquiler.id, subtotal: item.subtotal ?? item.precioUnitario }),
       );
     }
+    // Notificar al usuario que creó el alquiler
+    await this.notificaciones.notificarNuevoAlquiler(alquiler.id, usuarioId);
     return this.findOne(alquiler.id, tenantId);
   }
 
@@ -78,6 +82,9 @@ export class AlquileresService {
     );
     alquiler.estado = EstadoAlquiler.ENTREGADO;
     await this.repo.save(alquiler);
+
+    // Notificar check-out completado
+    await this.notificaciones.notificarCheckOut(id, usuarioId);
     return entrega;
   }
 
@@ -100,16 +107,16 @@ export class AlquileresService {
         tipo: TipoMovimiento.CHECK_IN,
         estadoNuevo,
         alquilerId: id,
-        observaciones: dto.observaciones
+        observaciones: dto.observaciones,
       },
       usuarioId, tenantId,
     );
 
-    // Si todos los items están devueltos, marcamos el alquiler como finalizado
-    // (Simplificación: Por ahora lo marcamos al recibir cualquier item)
     alquiler.estado = EstadoAlquiler.FINALIZADO;
     await this.repo.save(alquiler);
 
+    // Notificar check-in completado
+    await this.notificaciones.notificarCheckIn(id, usuarioId);
     return devolucion;
   }
 
