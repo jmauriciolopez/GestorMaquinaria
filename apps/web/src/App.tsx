@@ -14,6 +14,7 @@ import Devoluciones from './pages/Devoluciones';
 import Mantenimiento from './pages/Mantenimiento';
 import Penalidades from './pages/Penalidades';
 import Configuracion from './pages/Configuracion';
+import Reportes from './pages/Reportes';
 import Login from './pages/Login';
 
 const App = () => {
@@ -46,6 +47,9 @@ const App = () => {
             <Route path="/devoluciones"  element={<Devoluciones />} />
             <Route path="/mantenimiento" element={<Mantenimiento />} />
             <Route path="/penalidades"   element={<Penalidades />} />
+            <Route path="/reportes"      element={
+              <ErrorBoundary><Reportes /></ErrorBoundary>
+            } />
             <Route path="/configuracion" element={<Configuracion />} />
           </Route>
 
