@@ -26,6 +26,10 @@ export class Usuario extends BaseEntity {
   @Column({ name: 'ultimo_login', type: 'timestamptz', nullable: true })
   ultimoLogin?: Date;
 
+  /** Token Expo Push Notifications — registrado desde la app mobile */
+  @Column({ name: 'expo_push_token', length: 255, nullable: true })
+  expoPushToken?: string;
+
   @ManyToOne(() => Rol, { eager: true })
   @JoinColumn({ name: 'rol_id' })
   rol!: Rol;
