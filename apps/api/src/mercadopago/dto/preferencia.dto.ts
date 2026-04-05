@@ -2,14 +2,14 @@ import { IsUUID, IsNumber, IsString, IsOptional, IsPositive } from 'class-valida
 
 export class CrearPreferenciaDto {
   @IsUUID()
-  alquilerId: string;
+  alquilerId!: string;
 
   @IsNumber()
   @IsPositive()
-  monto: number;
+  monto!: number;
 
   @IsString()
-  descripcion: string;
+  descripcion!: string;
 
   @IsOptional()
   @IsString()
