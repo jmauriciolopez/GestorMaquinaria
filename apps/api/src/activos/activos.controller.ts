@@ -7,7 +7,6 @@ import { CreateActivoDto, UpdateActivoDto, FiltroActivoDto } from './dto/activo.
 import { GetUsuario, UsuarioActivo } from '../common/decorators/get-usuario.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
-import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller('activos')
 @UseGuards(RolesGuard)
@@ -18,9 +17,8 @@ export class ActivosController {
   findAll(
     @GetUsuario() u: UsuarioActivo,
     @Query() filtro: FiltroActivoDto,
-    @Query() pagination: PaginationDto,
   ) {
-    return this.service.findAll(u.tenantId, filtro, pagination);
+    return this.service.findAll(u.tenantId, filtro, filtro);
   }
 
   @Get('stats')
