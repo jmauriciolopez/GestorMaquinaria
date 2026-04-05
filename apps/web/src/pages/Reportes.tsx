@@ -8,24 +8,25 @@ import { generarExcelAlquileres } from '../reportes/generators/alquileres.excel'
 import { generarPDFFinanciero } from '../reportes/generators/financiero.pdf';
 import { generarExcelFinanciero } from '../reportes/generators/financiero.excel';
 import { formatMonto } from '../reportes/utils/formato';
-import type { Penalidad } from '../features/alquileres/types';
+import type { Alquiler, Penalidad } from '../features/alquileres/types';
+import type { Pago } from '../features/finanzas/types';
 
 // Fecha helper: primer y último día del mes actual
 function mesActual() {
-  const hoy = new Date();
-  const y   = hoy.getFullYear();
-  const m   = String(hoy.getMonth() + 1).padStart(2, '0');
+  const hoy    = new Date();
+  const y      = hoy.getFullYear();
+  const m      = String(hoy.getMonth() + 1).padStart(2, '0');
   const ultimo = new Date(y, hoy.getMonth() + 1, 0).getDate();
   return { desde: `${y}-${m}-01`, hasta: `${y}-${m}-${ultimo}` };
 }
 
-// Hook para penalidades globales (sin filtro por alquiler)
+// Hook penalidades globales (endpoint sin filtro por alquiler)
 function usePenalidadesGlobal() {
   return useQuery<Penalidad[]>({
     queryKey: ['penalidades', 'all'],
     queryFn: async () => {
       const { data } = await api.get('/penalidades', { params: { limit: 500 } });
-      return data?.data ?? data ?? [];
+      return (data?.data ?? data ?? []) as Penalidad[];
     },
     staleTime: 60_000,
   });
@@ -33,30 +34,32 @@ function usePenalidadesGlobal() {
 
 export default function ReportesPage() {
   const defaults = mesActual();
-  const [desde, setDesde] = useState(defaults.desde);
-  const [hasta, setHasta] = useState(defaults.hasta);
+  const [desde, setDesde]     = useState(defaults.desde);
+  const [hasta, setHasta]     = useState(defaults.hasta);
   const [generando, setGenerando] = useState<string | null>(null);
 
-  // Hooks reales del proyecto
-  const { data: alquileres = [], isLoading: loadAlq } = useAlquileres();
-  const { data: pagos      = [], isLoading: loadPag } = usePagos(500);
-  const { data: penalidades = [], isLoading: loadPen } = usePenalidadesGlobal();
+  // Tipos explícitos para evitar TS7006 en callbacks
+  const { data: alquileres,  isLoading: loadAlq } = useAlquileres();
+  const { data: pagos,       isLoading: loadPag } = usePagos(500);
+  const { data: penalidades, isLoading: loadPen } = usePenalidadesGlobal();
+
+  const alqs: Alquiler[] = (alquileres as Alquiler[] | undefined) ?? [];
+  const pags: Pago[]     = (pagos      as Pago[]     | undefined) ?? [];
+  const pens: Penalidad[] = penalidades ?? [];
 
   // Filtrar por rango de fechas
-  const alquileresFiltrados = alquileres.filter(a => {
+  const alquileresFiltrados = alqs.filter((a: Alquiler) => {
     const f = new Date(a.fechaInicio);
     return f >= new Date(desde) && f <= new Date(hasta);
   });
 
-  const pagosFiltrados = pagos.filter(p => {
+  const pagosFiltrados = pags.filter((p: Pago) => {
     if (!p.fecha) return false;
     const f = new Date(p.fecha);
     return f >= new Date(desde) && f <= new Date(hasta);
   });
 
-  const penalidadesFiltradas = penalidades.filter(p => {
-    // Penalidad no tiene createdAt en el type — usamos alquilerId como proxy
-    // Si el backend devuelve createdAt lo filtramos, si no mostramos todas
+  const penalidadesFiltradas = pens.filter((p: Penalidad) => {
     const raw = p as Penalidad & { createdAt?: string };
     if (!raw.createdAt) return true;
     const f = new Date(raw.createdAt);
@@ -64,11 +67,11 @@ export default function ReportesPage() {
   });
 
   // Métricas resumen
-  const totalAlquileres   = alquileresFiltrados.length;
-  const montoAlquileres   = alquileresFiltrados.reduce((s, a) => s + Number(a.subtotal ?? 0), 0);
-  const totalCobrado      = pagosFiltrados.reduce((s, p) => s + Number(p.monto ?? 0), 0);
-  const totalPenalidades  = penalidadesFiltradas.reduce((s, p) => s + Number(p.montoFinal ?? 0), 0);
-  const saldoPendiente    = montoAlquileres - totalCobrado;
+  const totalAlquileres  = alquileresFiltrados.length;
+  const montoAlquileres  = alquileresFiltrados.reduce((s: number, a: Alquiler) => s + Number(a.subtotal ?? 0), 0);
+  const totalCobrado     = pagosFiltrados.reduce((s: number, p: Pago) => s + Number(p.monto ?? 0), 0);
+  const totalPenalidades = penalidadesFiltradas.reduce((s: number, p: Penalidad) => s + Number(p.montoFinal ?? 0), 0);
+  const saldoPendiente   = montoAlquileres - totalCobrado;
 
   const loading = loadAlq || loadPag || loadPen;
 
@@ -118,10 +121,10 @@ export default function ReportesPage() {
         <div className="text-gray-500 text-sm">Cargando datos...</div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Alquileres"  value={String(totalAlquileres)}      sub="en el período"   color="blue"   />
-          <StatCard label="Facturado"   value={formatMonto(montoAlquileres)} sub="subtotal total"  color="indigo" />
-          <StatCard label="Cobrado"     value={formatMonto(totalCobrado)}    sub="pagos recibidos" color="green"  />
-          <StatCard label="Pendiente"   value={formatMonto(saldoPendiente)}  sub="saldo a cobrar"  color="amber"  />
+          <StatCard label="Alquileres" value={String(totalAlquileres)}      sub="en el período"   color="blue"   />
+          <StatCard label="Facturado"  value={formatMonto(montoAlquileres)} sub="subtotal total"  color="indigo" />
+          <StatCard label="Cobrado"    value={formatMonto(totalCobrado)}    sub="pagos recibidos" color="green"  />
+          <StatCard label="Pendiente"  value={formatMonto(saldoPendiente)}  sub="saldo a cobrar"  color="amber"  />
         </div>
       )}
 
