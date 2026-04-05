@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -37,6 +37,18 @@ const emptyToUndefined = (value?: string) => {
   return trimmed ? trimmed : undefined;
 };
 
+const buildDefaults = (data?: Cliente | null): ClienteFormValues => ({
+  nombre:        data?.nombre        ?? '',
+  razonSocial:   data?.razonSocial   ?? '',
+  tipoDocumento: data?.tipoDocumento ?? '',
+  documento:     data?.documento     ?? '',
+  email:         data?.email         ?? '',
+  telefono:      data?.telefono      ?? '',
+  direccion:     data?.direccion     ?? '',
+  notas:         data?.notas         ?? '',
+  activo:        data?.activo        ?? true,
+});
+
 const ClienteForm: React.FC<ClienteFormProps> = ({
   initialData,
   onCancel,
@@ -48,32 +60,28 @@ const ClienteForm: React.FC<ClienteFormProps> = ({
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<ClienteFormValues>({
     resolver: zodResolver(clienteSchema),
-    defaultValues: {
-      nombre: initialData?.nombre ?? '',
-      razonSocial: initialData?.razonSocial ?? '',
-      tipoDocumento: initialData?.tipoDocumento ?? '',
-      documento: initialData?.documento ?? '',
-      email: initialData?.email ?? '',
-      telefono: initialData?.telefono ?? '',
-      direccion: initialData?.direccion ?? '',
-      notas: initialData?.notas ?? '',
-      activo: initialData?.activo ?? true,
-    },
+    defaultValues: buildDefaults(initialData),
   });
+
+  // Reinicializar el form cuando llegue initialData (carga asíncrona o cambio de cliente)
+  useEffect(() => {
+    reset(buildDefaults(initialData));
+  }, [initialData?.id, reset]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSubmit = async (values: ClienteFormValues) => {
     const payload = {
-      nombre: values.nombre.trim(),
-      razonSocial: emptyToUndefined(values.razonSocial),
+      nombre:        values.nombre.trim(),
+      razonSocial:   emptyToUndefined(values.razonSocial),
       tipoDocumento: emptyToUndefined(values.tipoDocumento),
-      documento: emptyToUndefined(values.documento),
-      email: emptyToUndefined(values.email),
-      telefono: emptyToUndefined(values.telefono),
-      direccion: emptyToUndefined(values.direccion),
-      notas: emptyToUndefined(values.notas),
+      documento:     emptyToUndefined(values.documento),
+      email:         emptyToUndefined(values.email),
+      telefono:      emptyToUndefined(values.telefono),
+      direccion:     emptyToUndefined(values.direccion),
+      notas:         emptyToUndefined(values.notas),
     };
 
     if (initialData?.id) {
