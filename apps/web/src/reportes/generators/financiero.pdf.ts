@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { Pago } from '../../features/pagos/types';
-import type { Penalidad } from '../../features/penalidades/types';
+import type { Pago } from '../../features/finanzas/types';
+import type { Penalidad } from '../../features/alquileres/types';
 import { formatFecha, formatMonto } from '../utils/formato';
 
 export function generarPDFFinanciero(
@@ -21,9 +21,9 @@ export function generarPDFFinanciero(
   doc.text(`Generado: ${new Date().toLocaleString('es-AR')}`, 14, 29);
   doc.setTextColor(0);
 
-  // Resumen financiero
-  const totalCobrado   = pagos.reduce((s, p) => s + Number(p.monto ?? 0), 0);
-  const totalPenalidades = penalidades.reduce((s, p) => s + Number(p.monto ?? 0), 0);
+  // Resumen
+  const totalCobrado    = pagos.reduce((s, p) => s + Number(p.monto ?? 0), 0);
+  const totalPenalidades = penalidades.reduce((s, p) => s + Number(p.montoFinal ?? 0), 0);
 
   doc.setFillColor(37, 99, 235);
   doc.setTextColor(255);
@@ -61,13 +61,13 @@ export function generarPDFFinanciero(
   doc.text('Penalidades', 14, finalY + 12);
   autoTable(doc, {
     startY: finalY + 16,
-    head: [['Alquiler', 'Motivo', 'Monto', 'Estado', 'Fecha']],
+    head: [['Alquiler', 'Motivo', 'Monto original', 'Monto final', 'Estado']],
     body: penalidades.map(p => [
       p.alquilerId?.slice(-6).toUpperCase() ?? '—',
       p.motivo ?? '—',
-      formatMonto(Number(p.monto ?? 0)),
+      formatMonto(Number(p.montoOriginal ?? 0)),
+      formatMonto(Number(p.montoFinal ?? 0)),
       p.estado ?? '—',
-      formatFecha(p.createdAt),
     ]),
     styles: { fontSize: 8 },
     headStyles: { fillColor: [220, 38, 38] },
