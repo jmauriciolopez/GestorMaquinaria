@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Pago } from '../pagos/pago.entity';
 import { Alquiler } from '../alquileres/alquiler.entity';
 import { MetodoPago } from '../pagos/metodo-pago.enum';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 
 export interface CrearPreferenciaDto {
   alquilerId: string;
@@ -18,9 +19,9 @@ export interface CrearPreferenciaDto {
 
 export interface PreferenciaResult {
   preferenceId: string;
-  initPoint: string;       // URL producción
-  sandboxInitPoint: string; // URL sandbox (testing)
-  pagoId: string;          // ID del pago en nuestra DB
+  initPoint: string;
+  sandboxInitPoint: string;
+  pagoId: string;
 }
 
 @Injectable()
@@ -32,6 +33,7 @@ export class MercadoPagoService {
     private readonly config: ConfigService,
     @InjectRepository(Pago)     private readonly pagoRepo: Repository<Pago>,
     @InjectRepository(Alquiler) private readonly alquilerRepo: Repository<Alquiler>,
+    private readonly notificaciones: NotificacionesService,
   ) {
     this.client = new MercadoPagoConfig({
       accessToken: this.config.get<string>('mercadopago.accessToken') ?? '',
@@ -50,17 +52,16 @@ export class MercadoPagoService {
     const webhookUrl  = this.config.get<string>('mercadopago.webhookUrl');
     const externalRef = dto.externalReference ?? `alquiler-${dto.alquilerId}`;
 
-    // Crear registro de pago en estado pendiente ANTES de ir a MP
     const pago = await this.pagoRepo.save(
       this.pagoRepo.create({
-        alquilerId:       dto.alquilerId,
-        tenantId:         dto.tenantId,
-        usuarioId:        dto.usuarioId,
-        monto:            dto.monto,
-        metodoPago:       MetodoPago.MERCADOPAGO,
-        mpStatus:         'pending',
+        alquilerId:          dto.alquilerId,
+        tenantId:            dto.tenantId,
+        usuarioId:           dto.usuarioId,
+        monto:               dto.monto,
+        metodoPago:          MetodoPago.MERCADOPAGO,
+        mpStatus:            'pending',
         mpExternalReference: externalRef,
-        notas:            'Pago iniciado vía MercadoPago',
+        notas:               'Pago iniciado vía MercadoPago',
       }),
     );
 
@@ -69,10 +70,10 @@ export class MercadoPagoService {
       body: {
         external_reference: externalRef,
         items: [{
-          id:          dto.alquilerId,
-          title:       dto.descripcion,
-          quantity:    1,
-          unit_price:  Number(dto.monto),
+          id:         dto.alquilerId,
+          title:      dto.descripcion,
+          quantity:   1,
+          unit_price: Number(dto.monto),
           currency_id: 'ARS',
         }],
         payer: alquiler.cliente ? {
@@ -84,32 +85,30 @@ export class MercadoPagoService {
           failure: `${appUrl}/alquileres/${dto.alquilerId}?mp=failure`,
           pending: `${appUrl}/alquileres/${dto.alquilerId}?mp=pending`,
         },
-        auto_return:         'approved',
-        notification_url:    webhookUrl,
+        auto_return:          'approved',
+        notification_url:     webhookUrl,
         statement_descriptor: 'MAQUINARIA ALQUILER',
         metadata: {
-          pago_id:    pago.id,
+          pago_id:     pago.id,
           alquiler_id: dto.alquilerId,
           tenant_id:   dto.tenantId,
         },
       },
     });
 
-    // Guardar preference_id en el pago
     await this.pagoRepo.update(pago.id, { mpPreferenceId: response.id });
 
     this.logger.log(`Preferencia MP creada: ${response.id} para alquiler ${dto.alquilerId}`);
 
     return {
-      preferenceId:      response.id ?? '',
-      initPoint:         response.init_point ?? '',
-      sandboxInitPoint:  response.sandbox_init_point ?? '',
-      pagoId:            pago.id,
+      preferenceId:     response.id ?? '',
+      initPoint:        response.init_point ?? '',
+      sandboxInitPoint: response.sandbox_init_point ?? '',
+      pagoId:           pago.id,
     };
   }
 
   async procesarWebhook(body: Record<string, unknown>): Promise<void> {
-    // MP envía: { type: 'payment', data: { id: '12345' } }
     if (body['type'] !== 'payment') return;
 
     const paymentId = String((body['data'] as any)?.id ?? '');
@@ -123,7 +122,6 @@ export class MercadoPagoService {
       const status      = payment.status ?? '';
       const monto       = payment.transaction_amount ?? 0;
 
-      // Buscar pago en nuestra DB por external_reference
       const pago = await this.pagoRepo.findOne({
         where: { mpExternalReference: externalRef },
       });
@@ -133,19 +131,21 @@ export class MercadoPagoService {
         return;
       }
 
-      // Actualizar estado del pago
       pago.mpPaymentId = paymentId;
       pago.mpStatus    = status;
       pago.referencia  = paymentId;
 
       if (status === 'approved') {
         pago.fecha = new Date();
-        // Acreditar en el alquiler
         const alquiler = await this.alquilerRepo.findOne({ where: { id: pago.alquilerId } });
         if (alquiler) {
           alquiler.totalPagado = Number(alquiler.totalPagado) + Number(monto);
           await this.alquilerRepo.save(alquiler);
           this.logger.log(`Pago aprobado: $${monto} para alquiler ${pago.alquilerId}`);
+        }
+        // Notificar pago confirmado al usuario que generó el pago
+        if (pago.usuarioId) {
+          await this.notificaciones.notificarPagoConfirmado(pago.alquilerId, Number(monto), pago.usuarioId);
         }
       }
 
