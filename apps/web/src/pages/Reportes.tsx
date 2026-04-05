@@ -48,10 +48,17 @@ export default function ReportesPage() {
   const pens: Penalidad[] = penalidades ?? [];
 
   // Filtrar por rango de fechas
-  const alquileresFiltrados = alqs.filter((a: Alquiler) => {
-    const f = new Date(a.fechaInicio);
-    return f >= new Date(desde) && f <= new Date(hasta);
-  });
+  const fechaDesde = desde ? new Date(desde).getTime() : null;
+const fechaHasta = hasta ? new Date(hasta).getTime() : null;
+
+ const alquileresFiltrados = (Array.isArray(alqs) ? alqs : []).filter((a: Alquiler) => {
+    if (!a.fechaInicio || !fechaDesde || !fechaHasta) return false;
+
+    // Usamos .getTime() para una comparación numérica más rápida y precisa
+    const fechaAlquiler = new Date(a.fechaInicio).getTime();
+    
+    return fechaAlquiler >= fechaDesde && fechaAlquiler <= fechaHasta;
+});
 
   const pagosFiltrados = pags.filter((p: Pago) => {
     if (!p.fecha) return false;
