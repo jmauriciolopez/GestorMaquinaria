@@ -42,7 +42,7 @@ const ESTADO_CFG: Record<EstadoPen, { label: string; variant: BadgeVariant }> = 
 const usePenalidadesGlobal = () => useQuery<Penalidad[]>({
   queryKey: ['penalidades', 'global'],
   queryFn: async () => {
-    const { data } = await api.get('/penalidades', { params: { limit: 200 } });
+    const { data } = await api.get('/penalidades', { params: { limit: 100 } });
     return data?.data ?? data ?? [];
   },
   staleTime: 60_000,

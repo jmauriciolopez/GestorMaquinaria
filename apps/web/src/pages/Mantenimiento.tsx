@@ -57,7 +57,7 @@ interface CreateFormProps { onSuccess: () => void; onCancel: () => void; }
 const CreateForm: React.FC<CreateFormProps> = ({ onSuccess, onCancel }) => {
   const qc = useQueryClient();
   const { success, error } = useToast();
-  const { data: activosResult } = useActivos({ limit: 200 });
+  const { data: activosResult } = useActivos({ limit: 100 });
   const activos = activosResult?.data ?? activosResult ?? [];
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<{

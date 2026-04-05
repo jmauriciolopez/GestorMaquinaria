@@ -54,7 +54,7 @@ export const useActivosDisponibles = () =>
     queryKey: ['activos', 'disponibles'],
     queryFn: async () => {
       const { data } = await apiClient.get('/activos', {
-        params: { estado: 'disponible', limit: 200 },
+        params: { estado: 'disponible', limit: 100 },
       });
       return (data?.data ?? data ?? []) as Activo[];
     },
