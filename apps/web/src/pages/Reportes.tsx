@@ -1,23 +1,34 @@
 import { useState, useCallback } from 'react';
-import { useAlquileres } from '../hooks/useAlquileres';
-import { usePagos } from '../hooks/usePagos';
-import { usePenalidades } from '../hooks/usePenalidades';
+import { useQuery } from '@tanstack/react-query';
+import { useAlquileres } from '../features/alquileres/hooks/useAlquileresData';
+import { usePagos } from '../features/finanzas/hooks/usePagosData';
+import api from '../api/client';
 import { generarPDFAlquileres } from '../reportes/generators/alquileres.pdf';
 import { generarExcelAlquileres } from '../reportes/generators/alquileres.excel';
 import { generarPDFFinanciero } from '../reportes/generators/financiero.pdf';
 import { generarExcelFinanciero } from '../reportes/generators/financiero.excel';
 import { formatMonto } from '../reportes/utils/formato';
+import type { Penalidad } from '../features/alquileres/types';
 
 // Fecha helper: primer y último día del mes actual
 function mesActual() {
-  const hoy  = new Date();
-  const y    = hoy.getFullYear();
-  const m    = String(hoy.getMonth() + 1).padStart(2, '0');
+  const hoy = new Date();
+  const y   = hoy.getFullYear();
+  const m   = String(hoy.getMonth() + 1).padStart(2, '0');
   const ultimo = new Date(y, hoy.getMonth() + 1, 0).getDate();
-  return {
-    desde: `${y}-${m}-01`,
-    hasta: `${y}-${m}-${ultimo}`,
-  };
+  return { desde: `${y}-${m}-01`, hasta: `${y}-${m}-${ultimo}` };
+}
+
+// Hook para penalidades globales (sin filtro por alquiler)
+function usePenalidadesGlobal() {
+  return useQuery<Penalidad[]>({
+    queryKey: ['penalidades', 'all'],
+    queryFn: async () => {
+      const { data } = await api.get('/penalidades', { params: { limit: 500 } });
+      return data?.data ?? data ?? [];
+    },
+    staleTime: 60_000,
+  });
 }
 
 export default function ReportesPage() {
@@ -26,12 +37,12 @@ export default function ReportesPage() {
   const [hasta, setHasta] = useState(defaults.hasta);
   const [generando, setGenerando] = useState<string | null>(null);
 
-  // Hooks de datos existentes en el proyecto
-  const { alquileres = [], loading: loadAlq } = useAlquileres();
-  const { pagos = [],       loading: loadPag } = usePagos();
-  const { penalidades = [], loading: loadPen } = usePenalidades();
+  // Hooks reales del proyecto
+  const { data: alquileres = [], isLoading: loadAlq } = useAlquileres();
+  const { data: pagos      = [], isLoading: loadPag } = usePagos(500);
+  const { data: penalidades = [], isLoading: loadPen } = usePenalidadesGlobal();
 
-  // Filtrar por rango de fecha
+  // Filtrar por rango de fechas
   const alquileresFiltrados = alquileres.filter(a => {
     const f = new Date(a.fechaInicio);
     return f >= new Date(desde) && f <= new Date(hasta);
@@ -44,16 +55,20 @@ export default function ReportesPage() {
   });
 
   const penalidadesFiltradas = penalidades.filter(p => {
-    const f = new Date(p.createdAt);
+    // Penalidad no tiene createdAt en el type — usamos alquilerId como proxy
+    // Si el backend devuelve createdAt lo filtramos, si no mostramos todas
+    const raw = p as Penalidad & { createdAt?: string };
+    if (!raw.createdAt) return true;
+    const f = new Date(raw.createdAt);
     return f >= new Date(desde) && f <= new Date(hasta);
   });
 
-  // Métricas de resumen
-  const totalAlquileres  = alquileresFiltrados.length;
-  const montoAlquileres  = alquileresFiltrados.reduce((s, a) => s + Number(a.subtotal ?? 0), 0);
-  const totalCobrado     = pagosFiltrados.reduce((s, p) => s + Number(p.monto ?? 0), 0);
-  const totalPenalidades = penalidadesFiltradas.reduce((s, p) => s + Number(p.monto ?? 0), 0);
-  const saldoPendiente   = montoAlquileres - totalCobrado;
+  // Métricas resumen
+  const totalAlquileres   = alquileresFiltrados.length;
+  const montoAlquileres   = alquileresFiltrados.reduce((s, a) => s + Number(a.subtotal ?? 0), 0);
+  const totalCobrado      = pagosFiltrados.reduce((s, p) => s + Number(p.monto ?? 0), 0);
+  const totalPenalidades  = penalidadesFiltradas.reduce((s, p) => s + Number(p.montoFinal ?? 0), 0);
+  const saldoPendiente    = montoAlquileres - totalCobrado;
 
   const loading = loadAlq || loadPag || loadPen;
 
@@ -103,17 +118,17 @@ export default function ReportesPage() {
         <div className="text-gray-500 text-sm">Cargando datos...</div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Alquileres" value={String(totalAlquileres)} sub="en el período" color="blue" />
-          <StatCard label="Facturado" value={formatMonto(montoAlquileres)} sub="subtotal total" color="indigo" />
-          <StatCard label="Cobrado" value={formatMonto(totalCobrado)} sub="pagos recibidos" color="green" />
-          <StatCard label="Pendiente" value={formatMonto(saldoPendiente)} sub="saldo a cobrar" color="amber" />
+          <StatCard label="Alquileres"  value={String(totalAlquileres)}      sub="en el período"   color="blue"   />
+          <StatCard label="Facturado"   value={formatMonto(montoAlquileres)} sub="subtotal total"  color="indigo" />
+          <StatCard label="Cobrado"     value={formatMonto(totalCobrado)}    sub="pagos recibidos" color="green"  />
+          <StatCard label="Pendiente"   value={formatMonto(saldoPendiente)}  sub="saldo a cobrar"  color="amber"  />
         </div>
       )}
 
-      {/* Sección Alquileres */}
+      {/* Reporte Alquileres */}
       <ReporteCard
         titulo="Reporte de Alquileres"
-        descripcion={`${alquileresFiltrados.length} alquileres en el período seleccionado`}
+        descripcion={`${alquileresFiltrados.length} alquileres en el período — Facturado: ${formatMonto(montoAlquileres)}`}
         onPDF={() => exportar('alq-pdf')}
         onExcel={() => exportar('alq-excel')}
         generando={generando}
@@ -121,7 +136,7 @@ export default function ReportesPage() {
         disabled={loading || alquileresFiltrados.length === 0}
       />
 
-      {/* Sección Financiero */}
+      {/* Reporte Financiero */}
       <ReporteCard
         titulo="Reporte Financiero"
         descripcion={`${pagosFiltrados.length} pagos · ${penalidadesFiltradas.length} penalidades · Neto: ${formatMonto(totalCobrado - totalPenalidades)}`}
@@ -138,19 +153,15 @@ export default function ReportesPage() {
 // ─── Componentes internos ────────────────────────────────────────────────────
 
 interface StatCardProps {
-  label: string;
-  value: string;
-  sub: string;
+  label: string; value: string; sub: string;
   color: 'blue' | 'indigo' | 'green' | 'amber';
 }
-
 const colorMap: Record<StatCardProps['color'], string> = {
   blue:   'bg-blue-50 border-blue-200 text-blue-700',
   indigo: 'bg-indigo-50 border-indigo-200 text-indigo-700',
   green:  'bg-green-50 border-green-200 text-green-700',
   amber:  'bg-amber-50 border-amber-200 text-amber-700',
 };
-
 function StatCard({ label, value, sub, color }: StatCardProps) {
   return (
     <div className={`rounded-xl border p-4 ${colorMap[color]}`}>
@@ -162,15 +173,10 @@ function StatCard({ label, value, sub, color }: StatCardProps) {
 }
 
 interface ReporteCardProps {
-  titulo: string;
-  descripcion: string;
-  onPDF: () => void;
-  onExcel: () => void;
-  generando: string | null;
-  ids: [string, string];
-  disabled: boolean;
+  titulo: string; descripcion: string;
+  onPDF: () => void; onExcel: () => void;
+  generando: string | null; ids: [string, string]; disabled: boolean;
 }
-
 function ReporteCard({ titulo, descripcion, onPDF, onExcel, generando, ids, disabled }: ReporteCardProps) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -180,22 +186,8 @@ function ReporteCard({ titulo, descripcion, onPDF, onExcel, generando, ids, disa
           <p className="text-sm text-gray-500 mt-0.5">{descripcion}</p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <ExportBtn
-            label="PDF"
-            icon="📄"
-            onClick={onPDF}
-            loading={generando === ids[0]}
-            disabled={disabled}
-            className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
-          />
-          <ExportBtn
-            label="Excel"
-            icon="📊"
-            onClick={onExcel}
-            loading={generando === ids[1]}
-            disabled={disabled}
-            className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-          />
+          <ExportBtn label="PDF"   icon="📄" onClick={onPDF}   loading={generando === ids[0]} disabled={disabled} className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100" />
+          <ExportBtn label="Excel" icon="📊" onClick={onExcel} loading={generando === ids[1]} disabled={disabled} className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100" />
         </div>
       </div>
     </div>
@@ -203,14 +195,9 @@ function ReporteCard({ titulo, descripcion, onPDF, onExcel, generando, ids, disa
 }
 
 interface ExportBtnProps {
-  label: string;
-  icon: string;
-  onClick: () => void;
-  loading: boolean;
-  disabled: boolean;
-  className: string;
+  label: string; icon: string; onClick: () => void;
+  loading: boolean; disabled: boolean; className: string;
 }
-
 function ExportBtn({ label, icon, onClick, loading, disabled, className }: ExportBtnProps) {
   return (
     <button
@@ -218,11 +205,7 @@ function ExportBtn({ label, icon, onClick, loading, disabled, className }: Expor
       disabled={disabled || loading}
       className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
-      {loading ? (
-        <span className="animate-spin">⏳</span>
-      ) : (
-        <span>{icon}</span>
-      )}
+      {loading ? <span className="animate-spin">⏳</span> : <span>{icon}</span>}
       {label}
     </button>
   );
