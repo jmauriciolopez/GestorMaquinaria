@@ -6,13 +6,13 @@ import { GetUsuario, UsuarioActivo } from '../common/decorators/get-usuario.deco
 import { RolesGuard } from '../auth/guards/roles.guard';
 
 class ArchivoDto {
-  @IsString() base64: string;
-  @IsString() mimeType: string;
+  @IsString() base64!: string;
+  @IsString() mimeType!: string;
 }
 
 class UploadDto {
   @IsArray() @ValidateNested({ each: true }) @Type(() => ArchivoDto)
-  archivos: ArchivoDto[];
+  archivos!: ArchivoDto[];
 
   @IsOptional() @IsString()
   carpeta?: string;
