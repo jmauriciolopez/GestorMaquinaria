@@ -25,6 +25,7 @@ import { RecordatoriosModule } from './recordatorios/recordatorios.module';
 import { PagosModule } from './pagos/pagos.module';
 import { ReportsModule } from './reports/reports.module';
 import { MercadoPagoModule } from './mercadopago/mercadopago.module';
+import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
@@ -67,6 +68,7 @@ import notificacionesConfig from './config/notificaciones.config';
     PagosModule,
     ReportsModule,
     MercadoPagoModule,
+    NotificacionesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
