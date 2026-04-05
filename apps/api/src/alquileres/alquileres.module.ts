@@ -7,12 +7,14 @@ import { AlquileresService } from './alquileres.service';
 import { AlquileresController } from './alquileres.controller';
 import { ActivosModule } from '../activos/activos.module';
 import { MovimientosActivoModule } from '../movimientos-activo/movimientos-activo.module';
+import { NotificacionesModule } from '../notificaciones/notificaciones.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Alquiler, AlquilerItem, EntregaActivo, DevolucionActivo]),
     ActivosModule,
     MovimientosActivoModule,
+    NotificacionesModule,
   ],
   controllers: [AlquileresController],
   providers: [AlquileresService],
